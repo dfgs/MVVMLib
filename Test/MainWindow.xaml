@@ -1,0 +1,55 @@
+﻿<Window x:Class="Test.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Test" 
+		xmlns:ViewModels="clr-namespace:Test.ViewModels"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="480" Width="640" ResizeMode="CanResizeWithGrip" WindowStartupLocation="CenterScreen">
+	<Window.Resources>
+		<DataTemplate DataType="{x:Type ViewModels:GameViewModel}">
+			<TextBlock Text="{Binding Name}"/>
+		</DataTemplate>
+		<DataTemplate DataType="{x:Type ViewModels:PartyViewModel}">
+			<TextBlock Text="{Binding Description}"/>
+		</DataTemplate>
+	</Window.Resources>
+	
+	<DockPanel>
+		<StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+			<Button Content="Connect" Command="{Binding ConnectCommand}"/>
+			<Button Content="Disconnect" Command="{Binding DisconnectCommand}"/>
+		</StackPanel>
+		<StatusBar DockPanel.Dock="Bottom">
+			<TextBlock Text="Idle"/>
+		</StatusBar>
+		
+		<Grid>
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="1*"/>
+				<ColumnDefinition Width="5"/>
+				<ColumnDefinition Width="2*"/>
+			</Grid.ColumnDefinitions>
+			
+			<ListBox Grid.Column="0" ItemsSource="{Binding Games}" SelectedItem="{Binding Games.SelectedItem}"/>
+			<GridSplitter Grid.Column="1" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
+
+			<Grid Grid.Column="2">
+				<Grid.RowDefinitions>
+					<RowDefinition Height="1*"/>
+					<RowDefinition Height="5"/>
+					<RowDefinition Height="2*"/>
+				</Grid.RowDefinitions>
+				
+				<ListBox Grid.Row="0" ItemsSource="{Binding Parties}" SelectedItem="{Binding Parties.SelectedItem}"/>
+				<GridSplitter Grid.Row="1" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
+				<ListBox Grid.Row="2" ItemsSource="{Binding GridBoards}" SelectedItem="{Binding GridBoards.SelectedItem}"/>
+
+			</Grid>
+
+
+		</Grid>
+		
+	</DockPanel>
+</Window>

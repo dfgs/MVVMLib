@@ -1,0 +1,27 @@
+﻿<Window x:Class="ViewLib.EditWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ViewLib"
+       mc:Ignorable="d" WindowStartupLocation="CenterOwner" ResizeMode="NoResize" SizeToContent="Height" MaxHeight="480"
+       Title="Edit" Width="320"  Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" Icon="Images/pencil.png">
+
+
+	<Window.InputBindings>
+		<KeyBinding Key="Return" Command="{Binding OKCommand}"/>
+		<KeyBinding Key="Esc" Command="{Binding CancelCommand}"/>
+	</Window.InputBindings>
+	
+	
+	<DockPanel>
+
+		<StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom" HorizontalAlignment="Right">
+            <Button Margin="4" Content="OK" Width="80" Command="{Binding OKCommand}"/>
+            <Button Margin="4" Content="Cancel" Width="80" Command="{Binding CancelCommand}"/>
+            <Button Margin="4" Content="Apply" Width="80" Command="{Binding ApplyCommand}"/>
+        </StackPanel>
+        <local:EditControl/>
+    </DockPanel>
+</Window>
+

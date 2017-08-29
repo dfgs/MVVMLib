@@ -1,0 +1,50 @@
+﻿<UserControl x:Class="ViewLib.ToolTipView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:ViewLib"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300">
+	<UserControl.Resources>
+		<local:PropertyDataTemplateSelector x:Key="propertyDataTemplateSelector"/>
+		<DataTemplate x:Key="TextViewModelProperty">
+			<TextBlock Text="{Binding SourceValue,Mode=OneWay}" />
+		</DataTemplate>
+
+		<DataTemplate x:Key="ListViewModelProperty">
+			<ComboBox SelectedValue="{Binding SourceValue,Mode=OneWay}" ItemsSource="{Binding Items}" DisplayMemberPath="{Binding DisplayMemberPath}" SelectedValuePath="{Binding SelectedValuePath}">
+				<ComboBox.Template>
+					<ControlTemplate TargetType="{x:Type ComboBox}">
+						<TextBlock Text="{TemplateBinding Text}"/>
+					</ControlTemplate>
+				</ComboBox.Template>
+			</ComboBox>
+		</DataTemplate>
+
+		<DataTemplate x:Key="BoolViewModelProperty">
+			<CheckBox IsChecked="{Binding SourceValue,Mode=OneWay}" />
+		</DataTemplate>
+
+	</UserControl.Resources>
+
+	<ItemsControl ItemsSource="{Binding Properties}" IsTabStop="False">
+		<ItemsControl.ItemsPanel>
+			<ItemsPanelTemplate>
+				<StackPanel/>
+			</ItemsPanelTemplate>
+		</ItemsControl.ItemsPanel>
+		<ItemsControl.ItemTemplate>
+			<DataTemplate>
+				<StackPanel Orientation="Horizontal">
+					<Image Source="Images/bullet_orange.png" Stretch="None"/>
+					<TextBlock Text="{Binding Header}" FontWeight="Bold"/>
+					<TextBlock Text=": " FontWeight="Bold"/>
+					<ContentControl Content="{Binding}" ContentTemplateSelector="{StaticResource propertyDataTemplateSelector}"/>
+					
+				</StackPanel>
+			</DataTemplate>
+		</ItemsControl.ItemTemplate>
+
+	</ItemsControl>
+</UserControl>

@@ -1,0 +1,58 @@
+﻿<Window x:Class="ViewLib.ConnectWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ViewLib"
+        mc:Ignorable="d" ResizeMode="NoResize" WindowStartupLocation="CenterOwner"
+		Loaded="Window_Loaded"
+        Title="Connect" SizeToContent="Height"  Width="300" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
+
+	<Window.CommandBindings>
+		<CommandBinding Command="{x:Static local:RoutedCommands.OK}" Executed="OKCommandBinding_Executed" CanExecute="OKCommandBinding_CanExecute"/>
+		<CommandBinding Command="{x:Static local:RoutedCommands.Cancel}" Executed="CancelCommandBinding_Executed" CanExecute="CancelCommandBinding_CanExecute"/>
+	</Window.CommandBindings>
+	
+	<DockPanel>
+		<Grid DockPanel.Dock="Bottom" Margin="5">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="*"/>
+				<ColumnDefinition Width="100"/>
+				<ColumnDefinition Width="*"/>
+				<ColumnDefinition Width="100"/>
+				<ColumnDefinition Width="*"/>
+			</Grid.ColumnDefinitions>
+			<Button Grid.Column="1" Content="Connect" Command="{x:Static local:RoutedCommands.OK}"/>
+			<Button Grid.Column="3" Content="Cancel" Command="{x:Static local:RoutedCommands.Cancel}"/>
+		</Grid>
+		<StackPanel>
+			<HeaderedContentControl Margin="5">
+				<HeaderedContentControl.Header>
+					<StackPanel Orientation="Horizontal">
+						<Image Source="Images/bullet_orange.png" Stretch="None"/>
+						<TextBlock Text="Server:" FontWeight="Bold"/>
+					</StackPanel>
+				</HeaderedContentControl.Header>
+				<TextBox Text="{Binding Server,UpdateSourceTrigger=PropertyChanged}"/>
+			</HeaderedContentControl>
+			<HeaderedContentControl Margin="5">
+				<HeaderedContentControl.Header>
+					<StackPanel Orientation="Horizontal">
+						<Image Source="Images/bullet_orange.png" Stretch="None"/>
+						<TextBlock Text="Login:" FontWeight="Bold"/>
+					</StackPanel>
+				</HeaderedContentControl.Header>
+				<TextBox Text="{Binding Login,UpdateSourceTrigger=PropertyChanged}"/>
+			</HeaderedContentControl>
+			<HeaderedContentControl Margin="5">
+				<HeaderedContentControl.Header>
+					<StackPanel Orientation="Horizontal">
+						<Image Source="Images/bullet_orange.png" Stretch="None"/>
+						<TextBlock Text="Password:" FontWeight="Bold"/>
+					</StackPanel>
+				</HeaderedContentControl.Header>
+				<PasswordBox x:Name="passwordBox"/>
+			</HeaderedContentControl>
+		</StackPanel>
+	</DockPanel>
+</Window>
