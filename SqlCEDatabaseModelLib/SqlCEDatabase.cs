@@ -134,7 +134,7 @@ namespace SqlCEDatabaseModelLib
 			//CREATE TABLE MyCustomers(CustID int IDENTITY(100, 1) PRIMARY KEY, CompanyName nvarchar(50))
 
 			sql = "create table "+OnFormatTableName(Table.Name)+" (" ;
-			foreach(IColumn column in Table.Columns.Where(item=> item.Revision<=Revision))
+			foreach(IColumn column in Table.Columns.Where(item=> (item.Revision<=Revision) && !item.IsVirtual))
 			{
 				sql += OnFormatColumnName(column)+" " + GetTypeName(column) +  (column.IsNullable?" NULL,":" NOT NULL,");
 			}

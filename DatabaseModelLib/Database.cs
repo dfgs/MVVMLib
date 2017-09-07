@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace DatabaseModelLib
 {
-	public abstract class Database<ConnectionType,CommandType>:IDatabase
+	public abstract class Database<ConnectionType,CommandType>:IDatabase<ConnectionType,CommandType>
 		where ConnectionType:DbConnection
 		where CommandType:DbCommand,new()
 	{
@@ -221,10 +221,11 @@ namespace DatabaseModelLib
 			List<Tuple<string, object>> parameters;;
 
 			parameters = new List<Tuple<string, object>>();
-			
-			orders = Orders.ToArray();
 
-			sql = "select " + Utils.Join(Schema<DataType>.Columns.Where(item=>item.Revision<=Revision), ", ", item => OnFormatColumnName(item)) + " from "+ OnFormatTableName(Schema<DataType>.TableName);
+			if (Orders == null) orders = new IColumn<DataType>[] { };
+			else orders = Orders.ToArray();
+
+			sql = "select " + Utils.Join(Schema<DataType>.Columns.Where(item=>(item.Revision<=Revision) && (!item.IsVirtual)), ", ", item => OnFormatColumnName(item)) + " from "+ OnFormatTableName(Schema<DataType>.TableName);
 
 			if (Filter!=null) sql += " where " + OnCreateFilter(Filter,parameters);
 			
@@ -253,17 +254,19 @@ namespace DatabaseModelLib
 		{
 			string sql;
 			CommandType command;
+			IEnumerable<IColumn<DataType>> columns;
 
-			
+			columns = Schema<DataType>.Columns.Where(item => (!item.IsPrimaryKey) && (!item.IsIdentity) && (item.Revision <= maxRevision) && (!item.IsVirtual));
+
 			sql = "update " + OnFormatTableName(Schema<DataType>.TableName) + " set " +
-				Utils.Join(Schema<DataType>.Columns.Where(item=>(!item.IsPrimaryKey) && (!item.IsIdentity)  && (item.Revision<=maxRevision)), ",",
+				Utils.Join(columns, ",",
 				item => OnFormatColumnName(item) + "=" + OnCreateParameterName(item,0));
 			sql += " where " + OnFormatColumnName(Schema<DataType>.PrimaryKey) + "=" + OnCreateParameterName(Schema<DataType>.PrimaryKey, 1); 
 
 			command = new CommandType();
 			command.CommandText = sql;
 
-			foreach (IColumn<DataType> column in Schema<DataType>.Columns.Where(item => (!item.IsPrimaryKey) && (!item.IsIdentity) && (item.Revision<=maxRevision)))
+			foreach (IColumn<DataType> column in columns)
 			{
 				OnSetParameter<DataType>(command, OnCreateParameterName(column,0), OnConvertToDbValue(column,Item) );
 			}
@@ -277,7 +280,7 @@ namespace DatabaseModelLib
 			CommandType command;
 			IEnumerable<IColumn<DataType>> columns;
 
-			columns = Schema<DataType>.Columns.Where(item => ((!item.IsIdentity) && (item.Revision<=Revision)));
+			columns = Schema<DataType>.Columns.Where(item => ((!item.IsIdentity) && (item.Revision<=Revision) && (!item.IsVirtual)));
 
 			sql = "insert into " + OnFormatTableName(Schema<DataType>.TableName) + " (" + Utils.Join(columns, ", ", item => OnFormatColumnName(item)) + ") values (" + Utils.Join(columns, ",", item => OnCreateParameterName(item,0) ) + ")";
 
@@ -310,17 +313,7 @@ namespace DatabaseModelLib
 		}
 		private CommandType CreateDeleteCommand<DataType>(DataType Item)
 		{
-			string sql;
-			CommandType command;
-
-			sql = "delete from " + OnFormatTableName(Schema<DataType>.TableName);
-			sql += " where " + OnFormatColumnName(Schema<DataType>.PrimaryKey) + "=" + OnCreateParameterName(Schema<DataType>.PrimaryKey, 0);
-
-			command = new CommandType();
-			command.CommandText = sql;
-			OnSetParameter<DataType>(command, OnCreateParameterName(Schema<DataType>.PrimaryKey, 0), OnConvertToDbValue(Schema<DataType>.PrimaryKey, Item));
-
-			return command;
+			return CreateDeleteCommand(OnConvertToDbValue(Schema<DataType>.PrimaryKey, Item));
 		}
 
 
@@ -557,108 +550,6 @@ namespace DatabaseModelLib
 
 		}
 
-
-
-		public async Task<IEnumerable<DataType>> SelectAsync<DataType>(Func<DataType> DataConstructor, CommandType Command)
-		{
-			DataType data;
-			List<DataType> results;
-			DbDataReader reader;
-			ConnectionType connection = null;
-
-			results = new List<DataType>();
-
-			try
-			{
-				connection = OnCreateConnection();
-				await connection.OpenAsync();
-
-				Command.Connection = connection;
-				
-				reader = await Command.ExecuteReaderAsync();
-				while (reader.Read())
-				{
-					data = DataConstructor();
-					foreach (IColumn<DataType> column in Schema<DataType>.Columns.Where(item=>item.Revision<=maxRevision))
-					{
-						column.SetValue(data, OnConvertFromDbValue(column, reader[column.Name]));
-					}
-					results.Add(data);
-				}
-			}
-			catch (Exception ex)
-			{
-				throw (ex);
-			}
-			finally
-			{
-				if (connection != null) connection.Close();
-			}
-
-			return results;// Task.FromResult<IEnumerable<DataType>>(results);
-		}
-
-		public async Task<IEnumerable<DataType>> SelectAsync<DataType>(Func<DataType> DataConstructor, Filter<DataType> Filter)
-		{
-			CommandType command;
-
-			command = CreateSelectCommand<DataType>(Filter, new IColumn<DataType>[0],maxRevision);
-			return await SelectAsync<DataType>(DataConstructor, command);
-		}
-		public async Task<IEnumerable<DataType>> SelectAsync<DataType>() where DataType : new()
-		{
-			CommandType command;
-
-			command = CreateSelectCommand<DataType>(null, new IColumn<DataType>[0],maxRevision);
-			return await SelectAsync<DataType>(() => { return new DataType(); }, command);
-		}
-		public async Task<IEnumerable<DataType>> SelectAsync<DataType>(Filter<DataType> Filter)
-			where DataType:new()
-		{
-			CommandType command;
-
-			command = CreateSelectCommand<DataType>(Filter, new IColumn<DataType>[0],maxRevision);
-			return await SelectAsync<DataType>(() => { return new DataType(); }, command);
-		}
-
-		public async Task<IEnumerable<DataType>> SelectAsync<DataType>(Func<DataType> DataConstructor, Filter<DataType> Filter,IEnumerable<IColumn<DataType>> Orders)
-		{
-			CommandType command;
-
-			command = CreateSelectCommand<DataType>(Filter,Orders,maxRevision);
-			return await SelectAsync<DataType>(DataConstructor, command);
-		}
-		public async Task<IEnumerable<DataType>> SelectAsync<DataType>(Filter<DataType> Filter, IEnumerable<IColumn<DataType>> Orders)
-			where DataType : new()
-		{
-			CommandType command;
-
-			command = CreateSelectCommand<DataType>(Filter,Orders,maxRevision);
-			return await SelectAsync<DataType>(() => { return new DataType(); }, command);
-		}
-
-
-		public async Task<IEnumerable<DataType>> SelectAsync<DataType>(string SQL)
-			where DataType : new()
-		{
-			CommandType command;
-
-			command = new CommandType();
-			command.CommandText = SQL;
-			return await SelectAsync<DataType>(() => { return new DataType(); }, command);
-		}
-		public async Task<IEnumerable<DataType>> SelectAsync<DataType>(Func<DataType> DataConstructor, string SQL)
-		{
-			CommandType command;
-
-			command = new CommandType();
-			command.CommandText = SQL;
-			return await SelectAsync<DataType>(DataConstructor, command);
-		}
-
-
-
-
 		public async Task UpdateAsync<DataType>(DataType Item)
 		{
 			DbCommand command;
@@ -670,7 +561,7 @@ namespace DatabaseModelLib
 				await connection.OpenAsync();
 
 
-				command = CreateUpdateCommand<DataType>(Item,maxRevision);
+				command = CreateUpdateCommand<DataType>(Item, maxRevision);
 				command.Connection = connection;
 
 				await command.ExecuteNonQueryAsync();
@@ -684,14 +575,13 @@ namespace DatabaseModelLib
 				if (connection != null) connection.Close();
 			}
 		}
-	
 
 		public async Task DeleteAsync<DataType>(DataType Data)
 		{
 			DbCommand command;
-			ConnectionType connection=null;
+			ConnectionType connection = null;
 
-			
+
 			try
 			{
 				connection = OnCreateConnection();
@@ -713,17 +603,17 @@ namespace DatabaseModelLib
 
 		}
 
-		public async Task DeleteAsync<DataType,KeyType>(KeyType Key)
+		public async Task DeleteAsync<DataType, KeyType>(KeyType Key)
 		{
 			DbCommand command;
 			ConnectionType connection = null;
-			
+
 			try
 			{
 				connection = OnCreateConnection();
 				await connection.OpenAsync();
 
-				command = CreateDeleteCommand<DataType,KeyType>(Key);
+				command = CreateDeleteCommand<DataType, KeyType>(Key);
 				command.Connection = connection;
 				await command.ExecuteNonQueryAsync();
 			}
@@ -739,22 +629,112 @@ namespace DatabaseModelLib
 
 		}
 
-		public async Task ExecuteAsync(string SQL)
+		public async Task ExecuteAsync(CommandType Command)
+		{
+			ConnectionType connection = null;
+
+			try
+			{
+				connection = OnCreateConnection();
+				await connection.OpenAsync();
+
+				Command.Connection = connection;
+
+				await Command.ExecuteNonQueryAsync();
+			}
+			catch (Exception ex)
+			{
+				throw (ex);
+			}
+			finally
+			{
+				if (connection != null) connection.Close();
+			}
+
+
+		}
+
+		public async Task<ValType?> ExecuteAsync<ValType>(CommandType Command)
+			where ValType:struct
+		{
+			ConnectionType connection = null;
+			ValType? result;
+
+			try
+			{
+				connection = OnCreateConnection();
+				await connection.OpenAsync();
+
+				Command.Connection = connection;
+
+				result = (ValType?)await Command.ExecuteScalarAsync();
+				return result;
+			}
+			catch (Exception ex)
+			{
+				throw (ex);
+			}
+			finally
+			{
+				if (connection != null) connection.Close();
+			}
+
+
+		}
+
+		public async Task<IEnumerable<DataType>> SelectAsync<DataType>()
+			where DataType : new()
+		{
+			return await SelectAsync<DataType>(() => { return new DataType(); },null,null);
+		}
+		public async Task<IEnumerable<DataType>> SelectAsync<DataType>(Func<DataType> DataConstructor)
+		{
+			return await SelectAsync<DataType>(DataConstructor, null, null);
+		}
+		public async Task<IEnumerable<DataType>> SelectAsync<DataType>(Filter<DataType> Filter, params IColumn<DataType>[] Orders)
+			where DataType : new()
+		{
+			return await SelectAsync<DataType>(() => { return new DataType(); }, Filter,Orders);
+		}
+		public async Task<IEnumerable<DataType>> SelectAsync<DataType>(Func<DataType> DataConstructor, Filter<DataType> Filter, params IColumn<DataType>[] Orders)
 		{
 			CommandType command;
-			ConnectionType connection=null;
 
-			command = new CommandType();
-			command.CommandText = SQL;
+			command = CreateSelectCommand<DataType>(Filter, Orders, maxRevision);
+			return await SelectAsync<DataType>(DataConstructor, command);
+		}
+
+		public async Task<IEnumerable<DataType>> SelectAsync<DataType>(CommandType Command)
+			where DataType:new()
+		{
+			return await SelectAsync<DataType>(() => { return new DataType(); }, Command);
+		}
+		public async Task<IEnumerable<DataType>> SelectAsync<DataType>(Func<DataType> DataConstructor, CommandType Command)
+		{
+			DataType data;
+			List<DataType> results;
+			DbDataReader reader;
+			ConnectionType connection = null;
+
+			results = new List<DataType>();
 
 			try
 			{
 				connection = OnCreateConnection();
 				await connection.OpenAsync();
 
-				command.Connection = connection;
+				Command.Connection = connection;
 
-				await command.ExecuteNonQueryAsync();
+				reader = await Command.ExecuteReaderAsync();
+				while (reader.Read())
+				{
+					data = DataConstructor();
+					foreach (IColumn<DataType> column in Schema<DataType>.Columns.Where(item => item.Revision <= maxRevision))
+					{
+						column.SetValue(data, OnConvertFromDbValue(column, reader[column.Name]));
+					}
+					results.Add(data);
+				}
 			}
 			catch (Exception ex)
 			{
@@ -765,10 +745,21 @@ namespace DatabaseModelLib
 				if (connection != null) connection.Close();
 			}
 
-
+			return results;// Task.FromResult<IEnumerable<DataType>>(results);
 		}
 
-		
+
+
+
+
+
+
+
+
+
+
+
+
 	}
 }
 

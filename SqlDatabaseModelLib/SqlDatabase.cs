@@ -103,7 +103,7 @@ namespace SqlDatabaseModelLib
 			
 
 			sql = "create table ["+Table.Name+"] (" ;
-			foreach(IColumn column in Table.Columns.Where(item=>item.Revision<=Revision))
+			foreach(IColumn column in Table.Columns.Where(item=>(item.Revision<=Revision) && !item.IsVirtual))
 			{
 				sql += OnFormatColumnName(column)+ " " + GetTypeName(column) +  (column.IsNullable?" NULL,":" NOT NULL,");
 			}

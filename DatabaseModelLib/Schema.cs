@@ -79,11 +79,24 @@ namespace DatabaseModelLib
 			object value;
 			foreach(IColumn<DataType> column in columns)
 			{
-				if (column.IsIdentity) continue;
+				if ((column.IsIdentity) || (column.IsVirtual)) continue;
 				value = column.GetValue(Source);
 				column.SetValue(Destination, value);
 			}
 				
+		}
+		public static bool AreEquals(DataType Source, DataType Destination)
+		{
+			object value1,value2;
+			foreach (IColumn<DataType> column in columns)
+			{
+				if ((column.IsIdentity) || (column.IsVirtual)) continue;
+				value1 = column.GetValue(Source);
+				value2 = column.GetValue(Destination);
+				if (!ValueType.Equals(value1, value2))
+					return false;
+			}
+			return true;
 		}
 
 

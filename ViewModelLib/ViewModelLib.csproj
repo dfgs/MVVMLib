@@ -51,6 +51,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Attributes\BytePropertyAttribute.cs" />
+    <Compile Include="Attributes\TextListPropertyAttribute .cs" />
+    <Compile Include="Attributes\IntListPropertyAttribute.cs" />
     <Compile Include="Attributes\TimeSpanPropertyAttribute.cs" />
     <Compile Include="Attributes\TimePropertyAttribute.cs" />
     <Compile Include="Attributes\ULongPropertyAttribute.cs" />
@@ -70,6 +72,8 @@
     <Compile Include="StaticViewModel.cs" />
     <Compile Include="ViewModelEventArgs.cs" />
     <Compile Include="ViewModelProperties\ByteViewModelProperty.cs" />
+    <Compile Include="ViewModelProperties\TextListViewModelProperty.cs" />
+    <Compile Include="ViewModelProperties\IntListViewModelProperty.cs" />
     <Compile Include="ViewModelProperties\TimeSpanViewModelProperty.cs" />
     <Compile Include="ViewModelProperties\TimeViewModelProperty.cs" />
     <Compile Include="ViewModelProperties\IntViewModelProperty.cs" />
@@ -102,7 +106,6 @@
       <Name>ViewLib</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

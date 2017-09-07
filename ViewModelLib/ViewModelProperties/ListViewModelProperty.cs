@@ -11,7 +11,7 @@ using System.Windows.Data;
 
 namespace ViewModelLib.ViewModelProperties
 {
-	public class ListViewModelProperty: ViewModelProperty<int?>
+	public abstract class ListViewModelProperty<ValType>: ViewModelProperty<ValType>
 	{
 		private IEnumerable items;
 		public IEnumerable Items
@@ -38,21 +38,7 @@ namespace ViewModelLib.ViewModelProperties
 			get { return displayMemberPath; }
 		}
 
-		/*public override bool IsEqualToDefault
-		{
-			get
-			{
-				int key;
-				IEnumerable items=Items	;
-				if (items == null) return true;
-				foreach(object item in items)
-				{
-					key = (int)GetDeepPropertyValue(item, selectedValuePath);
-					if (key == Value) return false;
-				}
-				return true;
-			}
-		}*/
+		
 
 		public ListViewModelProperty(IEnumerable<IViewModel> ViewModels, PropertyDescriptor pd, string Header,bool IsMandatory,bool IsReadOnly, bool AutoApply, string SourcePath, string SelectedValuePath, string DisplayMemberPath) 
 			:base(ViewModels,pd,Header,IsMandatory,IsReadOnly,AutoApply)

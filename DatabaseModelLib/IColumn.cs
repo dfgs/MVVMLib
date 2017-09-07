@@ -25,6 +25,10 @@ namespace DatabaseModelLib
 		{
 			get;
 		}
+		bool IsVirtual
+		{
+			get;
+		}
 		Type DataType
 		{
 			get;

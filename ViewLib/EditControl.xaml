@@ -26,12 +26,29 @@
                 <tk:ColorPicker SelectedColor="{Binding Value}" ShowRecentColors="True" DisplayColorAndName="True" />
             </DataTemplate>
 
-            <DataTemplate x:Key="ListViewModelProperty">
-                <ComboBox SelectedValue="{Binding Value}" ItemsSource="{Binding Items}" DisplayMemberPath="{Binding DisplayMemberPath}" SelectedValuePath="{Binding SelectedValuePath}"/>
-            </DataTemplate>
+			<DataTemplate x:Key="IntListViewModelProperty">
+				<ComboBox ItemsSource="{Binding Items}"  DisplayMemberPath="{Binding DisplayMemberPath}" SelectedValuePath="{Binding SelectedValuePath}" SelectedValue="{Binding Value}">
+					<!-- Prevent display bug -->
+					<ComboBox.ItemTemplate>
+						<DataTemplate>
+							<ContentPresenter Content="{Binding}"/>
+						</DataTemplate>
+					</ComboBox.ItemTemplate>
+				</ComboBox>
+			</DataTemplate>
 
-
-            <DataTemplate x:Key="BoolViewModelProperty">
+			<DataTemplate x:Key="TextListViewModelProperty">
+				<ComboBox ItemsSource="{Binding Items}"  DisplayMemberPath="{Binding DisplayMemberPath}" SelectedValuePath="{Binding SelectedValuePath}" SelectedValue="{Binding Value}">
+					<!-- Prevent display bug -->
+					<ComboBox.ItemTemplate>
+						<DataTemplate>
+							<ContentPresenter Content="{Binding}"/>
+						</DataTemplate>
+					</ComboBox.ItemTemplate>
+				</ComboBox>
+			</DataTemplate>
+			
+			<DataTemplate x:Key="BoolViewModelProperty">
                 <CheckBox IsChecked="{Binding Value,Mode=TwoWay}" IsThreeState="False" />
             </DataTemplate>
 

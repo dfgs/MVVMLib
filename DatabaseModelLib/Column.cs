@@ -57,6 +57,13 @@ namespace DatabaseModelLib
 			set { isPrimaryKey = value; }
 		}
 
+		private bool isVirtual;
+		public bool IsVirtual
+		{
+			get { return isVirtual; }
+			set { isVirtual = value; }
+		}
+
 		private Type dataType;
 		public Type DataType
 		{

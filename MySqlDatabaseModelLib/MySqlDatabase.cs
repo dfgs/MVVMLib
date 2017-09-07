@@ -119,7 +119,7 @@ namespace MySqlDatabaseModelLib
 			string sql;
 	
 			sql = "CREATE TABLE " + Table.Name + " (";
-			foreach(IColumn column in Table.Columns.Where(item=>item.Revision<=Revision))
+			foreach(IColumn column in Table.Columns.Where(item=>(item.Revision<=Revision) && !item.IsVirtual))
 			{
 				sql += column.Name +" "+ GetTypeName(column) + (column.IsNullable ? " NULL" : " NOT NULL");
 				if (column.IsIdentity) sql += " AUTO_INCREMENT,"; else sql += ",";
