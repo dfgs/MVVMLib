@@ -14,8 +14,8 @@ namespace DatabaseViewModelLib
 			get;
 		}*/
 
-		Task<IEnumerable<DataType>> SelectAsync<DataType>(Func<DataType> DataConstructor, Filter<DataType> Filter, IEnumerable<IColumn<DataType>> Orders);
-		Task<IEnumerable<DataType>> SelectAsync<DataType>(Func<DataType> DataConstructor, string SQL);
+		Task<IEnumerable<DataType>> SelectAsync<DataType>(Func<DataType> DataConstructor, Filter<DataType> Filter, params IColumn<DataType>[] Orders);
+		//Task<IEnumerable<DataType>> SelectAsync<DataType>(Func<DataType> DataConstructor, string SQL);
 		Task<bool> InsertAsync<DataType>(DataType Item);
 		Task<bool> UpdateAsync<DataType>(DataType Item);
 		Task<bool> DeleteAsync<DataType>(DataType Item);

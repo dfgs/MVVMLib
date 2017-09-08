@@ -297,7 +297,7 @@ namespace DatabaseModelLib
 		{
 			return OnCreateIdentityCommand<DataType>();
 		}
-		private CommandType CreateDeleteCommand<DataType,KeyType>(KeyType Key)
+		private CommandType CreateDeleteCommand<DataType>(object Key)
 		{
 			string sql;
 			CommandType command;
@@ -313,7 +313,7 @@ namespace DatabaseModelLib
 		}
 		private CommandType CreateDeleteCommand<DataType>(DataType Item)
 		{
-			return CreateDeleteCommand(OnConvertToDbValue(Schema<DataType>.PrimaryKey, Item));
+			return CreateDeleteCommand<DataType>(OnConvertToDbValue(Schema<DataType>.PrimaryKey, Item));
 		}
 
 
@@ -613,7 +613,7 @@ namespace DatabaseModelLib
 				connection = OnCreateConnection();
 				await connection.OpenAsync();
 
-				command = CreateDeleteCommand<DataType, KeyType>(Key);
+				command = CreateDeleteCommand<DataType>(Key);
 				command.Connection = connection;
 				await command.ExecuteNonQueryAsync();
 			}
@@ -715,6 +715,7 @@ namespace DatabaseModelLib
 			List<DataType> results;
 			DbDataReader reader;
 			ConnectionType connection = null;
+			int index;
 
 			results = new List<DataType>();
 
@@ -729,9 +730,17 @@ namespace DatabaseModelLib
 				while (reader.Read())
 				{
 					data = DataConstructor();
-					foreach (IColumn<DataType> column in Schema<DataType>.Columns.Where(item => item.Revision <= maxRevision))
+					foreach (IColumn<DataType> column in Schema<DataType>.Columns.Where(item => (item.Revision <= maxRevision)  ))
 					{
-						column.SetValue(data, OnConvertFromDbValue(column, reader[column.Name]));
+						try
+						{
+							index = reader.GetOrdinal(column.Name);
+						}
+						catch
+						{
+							continue;
+						}
+						column.SetValue(data, OnConvertFromDbValue(column, reader[index]));
 					}
 					results.Add(data);
 				}

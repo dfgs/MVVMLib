@@ -17,7 +17,7 @@ namespace DatabaseViewModelLib
 		{
 		}
 
-		public async Task<IEnumerable<DataType>> SelectAsync<DataType>(Func<DataType> DataConstructor, Filter<DataType> Filter,IEnumerable<IColumn<DataType>> Orders)
+		public async Task<IEnumerable<DataType>> SelectAsync<DataType>(Func<DataType> DataConstructor, Filter<DataType> Filter,params IColumn<DataType>[] Orders)
 		{
 			try
 			{
@@ -29,7 +29,7 @@ namespace DatabaseViewModelLib
 			}
 			return null;
 		}
-		public async Task<IEnumerable<DataType>> SelectAsync<DataType>(Func<DataType> DataConstructor, string SQL)
+		/*public async Task<IEnumerable<DataType>> SelectAsync<DataType>(Func<DataType> DataConstructor, string SQL)
 		{
 			try
 			{
@@ -40,7 +40,7 @@ namespace DatabaseViewModelLib
 				Log(ex.Message);
 			}
 			return null;
-		}
+		}*/
 
 		public async Task<bool> InsertAsync<DataType>(DataType Item)
 		{
@@ -74,7 +74,7 @@ namespace DatabaseViewModelLib
 		{
 			try
 			{
-				await Model.DeleteAsync(Item);
+				await Model.DeleteAsync<DataType>(Item);
 				return true;
 			}
 			catch (Exception ex)
