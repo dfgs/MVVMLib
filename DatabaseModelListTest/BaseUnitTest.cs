@@ -13,6 +13,10 @@ namespace DatabaseModelLibTest
 		where DbType:IDatabase, new()
 	{
 		private static DbType db = new DbType();
+		public DbType Database
+		{
+			get { return db; }
+		}
 
 		protected DbType CreateDatabase()
 		{
@@ -21,7 +25,7 @@ namespace DatabaseModelLibTest
 			database = new DbType();
 			return database;
 		}
-		protected async Task<DataType> AssertSelectAsync<DataType, PrimaryKeyType>(bool SuccessExpected,PrimaryKeyType PrimaryKey)
+		protected async Task<DataType> AssertSelectAsync<DataType>(bool SuccessExpected,object PrimaryKey)
 			where DataType : new()
 		{
 			IEnumerable<DataType> items;
@@ -47,12 +51,13 @@ namespace DatabaseModelLibTest
 			}
 			return result;
 		}
-		protected async Task AssertInsertAsync<DataType, PrimaryKeyType>(bool SuccessExpected, DataType Item)
+		protected async Task AssertInsertAsync<DataType>(bool SuccessExpected, DataType Item)
 			where DataType : new()
 		{
-			PrimaryKeyType key;
+			object originalKey,key;
 			DataType other;
 
+			originalKey = Schema<DataType>.PrimaryKey.GetValue(Item);
 			try
 			{
 				await db.InsertAsync<DataType>(Item);
@@ -62,23 +67,31 @@ namespace DatabaseModelLibTest
 				if (SuccessExpected) Assert.Fail($"Insert command of item type {typeof(DataType).Name} failed with exception {ex.Message}");
 				return;
 			}
-			key = (PrimaryKeyType)Schema<DataType>.PrimaryKey.GetValue(Item);
+			key = Schema<DataType>.PrimaryKey.GetValue(Item);
 
-			Assert.AreNotEqual(default(PrimaryKeyType), key, $"Insert command of item type {typeof(DataType).Name} failed, primary key not updated");
+			Assert.AreNotEqual(originalKey, key, $"Insert command of item type {typeof(DataType).Name} failed, primary key not updated");
 
-			other = await AssertSelectAsync<DataType, PrimaryKeyType>(true,key);
+			other = await AssertSelectAsync<DataType>(true,key);
 			if (other == null) Assert.Fail($"Insert command of item type {typeof(DataType).Name} failed, cannot find item in database");
 			Assert.IsTrue(Schema<DataType>.AreEquals(Item, other), $"Insert command of item type {typeof(DataType).Name} failed, returned result is not identical");
 		}
-		protected async Task AssertUpdateAsync<DataType, PrimaryKeyType>(bool SuccessExpected, DataType Item)
+		protected async Task AssertUpdateAsync<DataType>(bool SuccessExpected, DataType Item,Action<DataType> UpdateAction)
 			where DataType : new()
 		{
-			PrimaryKeyType key;
+			object key;
 			DataType other;
+			DataType clone;
+
+			key = Schema<DataType>.PrimaryKey.GetValue(Item);
+
+			clone = new DataType();
+			Schema<DataType>.Clone(Item, clone);
+			Schema<DataType>.PrimaryKey.SetValue(clone, key);
+			UpdateAction(clone);
 
 			try
 			{
-				await db.UpdateAsync<DataType>(Item);
+				await db.UpdateAsync<DataType>(clone);
 			}
 			catch (Exception ex)
 			{
@@ -86,17 +99,16 @@ namespace DatabaseModelLibTest
 				return;
 			}
 
-			key = (PrimaryKeyType)Schema<DataType>.PrimaryKey.GetValue(Item);
 
-			other = await AssertSelectAsync<DataType, PrimaryKeyType>(true, key);
+			other = await AssertSelectAsync<DataType>(true, key);
 			if (other == null) Assert.Fail($"Update command of item type {typeof(DataType).Name} failed, cannot find item in database");
-			Assert.IsTrue(Schema<DataType>.AreEquals(Item, other), $"Update command of item type {typeof(DataType).Name} failed, returned result is not identical");
+			Assert.IsTrue(Schema<DataType>.AreEquals(clone, other), $"Update command of item type {typeof(DataType).Name} failed, returned result is not identical");
 
 		}
-		protected async Task AssertDeleteAsync<DataType, PrimaryKeyType>(bool SuccessExpected, DataType Item)
+		protected async Task AssertDeleteAsync<DataType>(bool SuccessExpected, DataType Item)
 			where DataType : new()
 		{
-			PrimaryKeyType key;
+			object key;
 			DataType other;
 
 			try
@@ -109,22 +121,21 @@ namespace DatabaseModelLibTest
 				return;
 			}
 
-			key = (PrimaryKeyType)Schema<DataType>.PrimaryKey.GetValue(Item);
+			key = Schema<DataType>.PrimaryKey.GetValue(Item);
 
-			other = await AssertSelectAsync<DataType, PrimaryKeyType>(false, key);
+			other = await AssertSelectAsync<DataType>(false, key);
 			if (other != null) Assert.Fail($"Delete command of item type {typeof(DataType).Name} failed, item found in database");
 		}
 
-		protected async Task AssertCRUDAsync<DataType,PrimaryKeyType>(DataType Item,params Action<DataType>[] UpdateActions)
+		protected async Task AssertCRUDAsync<DataType>(DataType Item,params Action<DataType>[] UpdateActions)
 			where DataType:new()
 		{
-			await AssertInsertAsync<DataType, PrimaryKeyType>(true, Item);
+			await AssertInsertAsync<DataType>(true, Item);
 			foreach (Action<DataType> action in UpdateActions)
 			{
-				action(Item);
-				await AssertUpdateAsync<DataType, PrimaryKeyType>(true, Item);
+				await AssertUpdateAsync<DataType>(true, Item,action);
 			}
-			await AssertDeleteAsync<DataType, PrimaryKeyType>(true, Item);
+			await AssertDeleteAsync<DataType>(true, Item);
 		}
 
 
