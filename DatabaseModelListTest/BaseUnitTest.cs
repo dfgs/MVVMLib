@@ -13,7 +13,7 @@ namespace DatabaseModelLibTest
 		where DbType:IDatabase, new()
 	{
 		private static DbType db = new DbType();
-		public DbType Database
+		public static DbType Database
 		{
 			get { return db; }
 		}
