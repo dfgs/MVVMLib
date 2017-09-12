@@ -316,6 +316,7 @@ namespace DatabaseModelLib
 			return CreateDeleteCommand<DataType>(OnConvertToDbValue(Schema<DataType>.PrimaryKey, Item));
 		}
 
+		
 
 		public async Task CreateColumnAsync(IColumn Column)
 		{
@@ -445,6 +446,7 @@ namespace DatabaseModelLib
 
 		public async Task CreateAsync()
 		{
+			DbTransaction transaction;
 			try
 			{
 				
@@ -703,7 +705,6 @@ namespace DatabaseModelLib
 			command = CreateSelectCommand<DataType>(Filter, Orders, maxRevision);
 			return await SelectAsync<DataType>(DataConstructor, command);
 		}
-
 		public async Task<IEnumerable<DataType>> SelectAsync<DataType>(CommandType Command)
 			where DataType:new()
 		{
