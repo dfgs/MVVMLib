@@ -18,12 +18,7 @@ namespace DatabaseModelLib
 			get;
 		}
 
-		Task CreateTableAsync(ITable Table);
-		Task DropTableAsync(ITable Table);
-		Task CreateRelationAsync(IRelation Relation);
-		Task CreateColumnAsync(IColumn Column);
-
-
+	
 		Task<IEnumerable<DataType>> SelectAsync<DataType>(Func<DataType> DataConstructor);
 		Task<IEnumerable<DataType>> SelectAsync<DataType>()
 			where DataType : new();
@@ -31,22 +26,12 @@ namespace DatabaseModelLib
 		Task<IEnumerable<DataType>> SelectAsync<DataType>(Filter<DataType> Filter, params IColumn<DataType>[] Orders)
 			where DataType : new();
 
-		/*Task<IEnumerable<DataType>> SelectAsync<DataType>(Func<DataType> DataConstructor, Filter<DataType> Filter);
-		Task<IEnumerable<DataType>> SelectAsync<DataType>(Filter<DataType> Filter)
-			where DataType : new();*/
-
-
 		Task InsertAsync<DataType>(DataType Item);
 		Task UpdateAsync<DataType>(DataType Item);
 		Task DeleteAsync<DataType>(DataType Item);
 		Task DeleteAsync<DataType,PrimaryKeyType>(PrimaryKeyType ItemID);
 
-		Task<bool> ExistsAsync();
-		Task CreateAsync();
-		Task BackupAsync(string Path);
-
 		void SetMaxRevision(int Revision);
-
 	}
 
 	public interface IDatabase<ConnectionType, CommandType> : IDatabase

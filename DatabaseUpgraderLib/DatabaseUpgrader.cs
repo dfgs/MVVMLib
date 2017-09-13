@@ -2,6 +2,7 @@
 using ModelLib;
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,20 +10,23 @@ using System.Threading.Tasks;
 namespace DatabaseUpgraderLib
 {
 	
-	public class DatabaseUpgrader
+	public abstract class DatabaseUpgrader<ConnectionType, CommandType>
+		where ConnectionType : DbConnection
+		where CommandType : DbCommand, new()
 	{
-		private IDatabase database;
-		public IDatabase Database
+		private Database<ConnectionType,CommandType> database;
+		public Database<ConnectionType, CommandType> Database
 		{
 			get { return database; }
 		}
+
 		private Table<UpgradeLog> upgradeLogs;
 
-		private string errorMessage;
+		/*private string errorMessage;
 		public string ErrorMessage
 		{
 			get { return errorMessage; }
-		}
+		}*/
 
 		private IEnumerable<IRevision> RevisionItems
 		{
@@ -44,26 +48,143 @@ namespace DatabaseUpgraderLib
 			}
 		}
 
-		public DatabaseUpgrader(IDatabase Database)
+		public DatabaseUpgrader(Database<ConnectionType, CommandType> Database)
 		{
 			this.database = Database;
 			upgradeLogs = new Table<UpgradeLog>();
 		}
+
+		protected virtual string OnFormatColumnName(IColumn Column)
+		{
+			return "[" + Column.Name + "]";
+		}
+		protected virtual string OnFormatTableName(string TableName)
+		{
+			return "[" + TableName + "]";
+		}
+
+		protected abstract CommandType OnCreateTableCreateCommand(ITable Table);
+		protected abstract CommandType OnCreateColumnCreateCommand(IColumn Column);
+		protected abstract CommandType OnCreateTableDropCommand(ITable Table);
+		protected abstract CommandType OnCreateRelationCreateCommand(IRelation Relation);
+
+
+		private async Task CreateColumnAsync(ConnectionType Connection, IColumn Column)
+		{
+			CommandType command;
+
+			command = OnCreateColumnCreateCommand(Column);
+			command.Connection = Connection;
+			await command.ExecuteNonQueryAsync();
+		}
+
+		private async Task CreateTableAsync(ConnectionType Connection, ITable Table)
+		{
+			CommandType command;
+
+			command = OnCreateTableCreateCommand(Table);
+			command.Connection = Connection;
+			await command.ExecuteNonQueryAsync();
+		}
+
+		private async Task DropTableAsync(ConnectionType Connection, ITable Table)
+		{
+			CommandType command;
+
+			command = OnCreateTableDropCommand(Table);
+			command.Connection = Connection;
+			await command.ExecuteNonQueryAsync();
+		}
+
+		private async Task CreateRelationAsync(ConnectionType Connection, IRelation Relation)
+		{
+			CommandType command;
+
+			command = OnCreateRelationCreateCommand(Relation);
+			command.Connection = Connection;
+			await command.ExecuteNonQueryAsync();
+		}
+
+
+
+		protected abstract Task<bool> OnExistsAsync();
+		public async Task<bool> ExistsAsync()
+		{
+			return await OnExistsAsync();
+		}
+
+		protected abstract Task OnDropAsync();
+		public async Task DropAsync()
+		{
+			await OnDropAsync();
+		}
+
+		protected abstract Task OnBackupAsync(string Path);
+		public async Task BackupAsync(string Path)
+		{
+			await OnBackupAsync(Path);
+		}
+
+		protected abstract ConnectionType OnCreateConnection();
+
+		protected abstract Task OnCreatingAsync(ConnectionType Connection);
+
+		public async Task CreateAsync()
+		{
+			ConnectionType connection = null;
+			DbTransaction transaction=null;
+
+			try
+			{
+				connection = OnCreateConnection();
+				await connection.OpenAsync();
+				transaction=connection.BeginTransaction();
+
+				await OnCreatingAsync(connection);
+
+				await CreateTableAsync(connection,upgradeLogs);
+
+				foreach (ITable table in Database.Tables.Where(item => item.Revision == 0))
+				{
+					await CreateTableAsync(connection, table);
+				}
+
+				foreach (IRelation relation in Database.Relations.Where(item => item.Revision == 0))
+				{
+					await CreateRelationAsync(connection, relation);
+				}
+
+				await OnCreatedAsync();
+
+				transaction.Commit();
+				connection.Close();
+			}
+			catch (Exception ex)
+			{
+				if (transaction != null) transaction.Rollback();
+				if (connection != null) connection.Close();
+				throw (ex);
+			}
+			finally
+			{
+			}
+
+		}
+
+		protected virtual async Task OnCreatedAsync()
+		{
+			await Task.Yield();
+		}
+
+
+
+
 		public async Task<int> GetDatabaseRevisionAsync()
 		{
 			IEnumerable<UpgradeLog> logs;
 
-			errorMessage = null;
-			try
-			{
-				logs = await database.SelectAsync<UpgradeLog>();
-				return logs.Max(item => item.Revision)??0;
-			}
-			catch(Exception ex)
-			{
-				errorMessage = ex.Message;
-				return -1;
-			}
+			logs = await database.SelectAsync<UpgradeLog>();
+			return logs.Max(item => item.Revision) ?? 0;
 		}
 
 		public int GetTargetRevision()
@@ -76,124 +197,70 @@ namespace DatabaseUpgraderLib
 			return GetTargetRevision() != await GetDatabaseRevisionAsync();
 		}
 
-		public async Task<bool> UpgradeAsync()
+		public async Task UpgradeAsync()
 		{
 			int targetRevision;
 			int currentRevision;
-			bool success;
 			UpgradeLog log;
+			ConnectionType connection=null;
+			DbTransaction transaction = null;
 
 			currentRevision = await GetDatabaseRevisionAsync();
 			targetRevision = GetTargetRevision();
 
-			errorMessage = null;
-			if (currentRevision == -1) // no under version control
-            {
-                success = await OnCreateVersionControlAsync(targetRevision);
-                if (success)
-                {
-                    log = new UpgradeLog() { Date = DateTime.Now, Revision = 0 };
-                    try
-                    {
-                        await database.InsertAsync(log);
-						currentRevision = 0;
-                    }
-                    catch(Exception ex)
-                    {
-						errorMessage = ex.Message;
-						return false;
-                    }
-                }
-            }
-            
-            success = true;
-            while (currentRevision != targetRevision)
-            {
-                currentRevision++;
-				database.SetMaxRevision(currentRevision);
-				success = await OnUpgradeAsync(currentRevision);
-                if (!success) break;
+			try
+			{
+				connection = OnCreateConnection();
+				await connection.OpenAsync();
+				transaction = connection.BeginTransaction();
 
-                log = new UpgradeLog() { Date = DateTime.Now, Revision = currentRevision };
-                try
-                {
+				while (currentRevision != targetRevision)
+				{
+					currentRevision++;
+					//database.SetMaxRevision(currentRevision);
+					await OnUpgradeAsync(connection,currentRevision);
+					log = new UpgradeLog() { Date = DateTime.Now, Revision = currentRevision };
+
 					await OnUpgradedTo(currentRevision);
-                    await database.InsertAsync(log);
-                }
-                catch (Exception ex)
-                {
-					errorMessage = ex.Message;
-					success = false;
-                    break;
-                }
-            }
+					await database.InsertAsync(log);
+				}
 
-			return success;
+				transaction.Commit();
+				connection.Close();
+			}
+			catch (Exception ex)
+			{
+				if (transaction != null) transaction.Rollback();
+				if (connection != null) connection.Close();
+				throw (ex);
+			}
+
 		}
+
 		protected virtual async Task OnUpgradedTo(int Revision)
 		{
 			await Task.Yield();
 		}
 
-        protected virtual async Task<bool> OnCreateVersionControlAsync(int TargetRevision)
-        {
-			errorMessage = null;
-			try
-            {
-                await database.CreateTableAsync(upgradeLogs);
-            }
-            catch (Exception ex)
-            {
-				errorMessage = ex.Message;
-				return false;
-            }
-            return true;
-        }
+       
 
-        protected virtual async Task<bool> OnUpgradeAsync(int TargetRevision)
+        protected virtual async Task OnUpgradeAsync(ConnectionType Connection,int TargetRevision)
 		{
-
-			errorMessage = null;
 			foreach (ITable table in database.Tables.Where(item=>item.Revision==TargetRevision))
 			{
-				try
-				{
-					await database.CreateTableAsync(table);
-				}
-				catch (Exception ex)
-                {
-					errorMessage = ex.Message;
-					return false;
-				}
+				await CreateTableAsync(Connection, table);
 			}
 			foreach (IColumn column in database.Tables.SelectMany(item => item.Columns).Where(item => item.Revision == TargetRevision))
 			{
-				try
-				{
-					await database.CreateColumnAsync(column);
-				}
-				catch (Exception ex)
-                {
-					errorMessage = ex.Message;
-					return false;
-				}
+				await CreateColumnAsync(Connection, column);
 			}
 			foreach (IRelation relation in database.Relations.Where(item => item.Revision == TargetRevision))
 			{
-				try
-				{
-					await database.CreateRelationAsync(relation);
-				}
-				catch (Exception ex)
-                {
-					errorMessage = ex.Message;
-					return false;
-				}
+				await CreateRelationAsync(Connection, relation);
 			}
 
-			return true;
 		}
-		
+	
 
 	}
 }

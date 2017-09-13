@@ -84,7 +84,7 @@ namespace DatabaseModelLib
 			this.maxRevision=Revision;
 		}
 
-		protected async Task<ConnectionType> OpenConnection()
+		protected async Task<ConnectionType> OpenConnectionAsync()
 		{
 			ConnectionType connection=OnCreateConnection();
 			await connection.OpenAsync();
@@ -95,13 +95,11 @@ namespace DatabaseModelLib
 
 		protected void CloseConnection(ConnectionType Connection)
 		{
-			if (Connection != null) Connection.Close();
+			if  (Connection != null) Connection.Close();
 		}
-		//protected abstract void OnCloseConnection(ConnectionType Connection);
 
-
+		
 		protected abstract void OnSetParameter<DataType>(CommandType Command, string Name, object Value);
-
 
 		protected virtual string OnCreateEqualFilter<DataType>(EqualFilter<DataType> Filter, List<Tuple<string, object>> Parameters)
 		{
@@ -216,16 +214,6 @@ namespace DatabaseModelLib
 		}
 
 		protected abstract CommandType OnCreateIdentityCommand<DataType>();
-		protected abstract CommandType OnCreateTableCreateCommand(ITable Table,int Revision);
-		protected abstract CommandType OnCreateColumnCreateCommand(IColumn Column);
-		protected abstract CommandType OnCreateTableDropCommand(ITable Table);
-		protected abstract CommandType OnCreateRelationCreateCommand(IRelation Relation);
-
-		protected abstract Task<bool> OnExistsAsync();
-		protected abstract Task OnCreateAsync();
-		protected abstract Task OnDropAsync();
-		protected abstract Task OnBackupAsync(string Path);
-
 
 		private CommandType CreateSelectCommand<DataType>(Filter<DataType> Filter, IEnumerable<IColumn<DataType>> Orders,int Revision)
 		{
@@ -330,182 +318,6 @@ namespace DatabaseModelLib
 			return CreateDeleteCommand<DataType>(OnConvertToDbValue(Schema<DataType>.PrimaryKey, Item));
 		}
 
-		
-
-		public async Task CreateColumnAsync(IColumn Column)
-		{
-			ConnectionType connection;
-			CommandType command;
-
-			connection = null;
-			try
-			{
-				connection = await OpenConnection();
-
-				command = OnCreateColumnCreateCommand(Column);
-				command.Connection = connection;
-
-				await command.ExecuteNonQueryAsync();
-			}
-			catch (Exception ex)
-			{
-				throw (ex);
-			}
-			finally
-			{
-				CloseConnection(connection);
-			}
-		}
-
-		public async Task CreateTableAsync(ITable Table)
-		{
-			ConnectionType connection;
-			CommandType command;
-
-			connection = null;
-			try
-			{
-				connection = await OpenConnection();
-
-				command = OnCreateTableCreateCommand(Table,maxRevision);
-				command.Connection = connection;
-
-				await command.ExecuteNonQueryAsync();
-			}
-			catch (Exception ex)
-			{
-				throw (ex);
-			}
-			finally
-			{
-				CloseConnection(connection);
-			}
-		}
-
-		public async Task DropTableAsync(ITable Table)
-		{
-			ConnectionType connection;
-			CommandType command;
-
-			connection = null;
-			try
-			{
-				connection = await OpenConnection();
-
-				command = OnCreateTableDropCommand(Table);
-				command.Connection = connection;
-
-				await command.ExecuteNonQueryAsync();
-			}
-			catch (Exception ex)
-			{
-				throw (ex);
-			}
-			finally
-			{
-				CloseConnection(connection);
-			}
-		}
-
-		public async Task CreateRelationAsync(IRelation Relation)
-		{
-			ConnectionType connection;
-			CommandType command;
-
-			connection = null;
-			try
-			{
-				connection = await OpenConnection();
-
-				command = OnCreateRelationCreateCommand(Relation);
-				command.Connection = connection;
-
-				await command.ExecuteNonQueryAsync();
-			}
-			catch (Exception ex)
-			{
-				throw (ex);
-			}
-			finally
-			{
-				CloseConnection(connection);
-			}
-		}
-
-		public async Task<bool> ExistsAsync()
-		{
-			return await OnExistsAsync();
-		}
-
-		public async Task DropAsync()
-		{
-
-			try
-			{
-				await OnDropAsync();
-			}
-			catch (Exception ex)
-			{
-				throw (ex);
-			}
-		}
-
-		public async Task CreateAsync()
-		{
-			try
-			{
-				await OnCreateAsync();
-
-				foreach(ITable table in tables.Where(item=>item.Revision<=maxRevision))
-				{
-					await CreateTableAsync(table);
-				}
-
-				foreach (IRelation relation in relations.Where(item => item.Revision <= maxRevision))
-				{
-					await CreateRelationAsync(relation);
-				}
-
-				await OnCreatedAsync();
-
-			}
-			catch (Exception ex)
-			{
-				throw (ex);
-			}
-			finally
-			{
-			}
-
-		}
-
-		protected virtual async Task OnCreatedAsync()
-		{
-			await Task.Yield();
-		} 
-
-		public async Task BackupAsync(string Path)
-		{
-			try
-			{
-				await OnBackupAsync(Path);
-			}
-			catch (Exception ex)
-			{
-				throw (ex);
-			}
-			finally
-			{
-			}
-		}
-
-
-
-
-
-
-
-
 		public async Task InsertAsync<DataType>(DataType Item)
 		{
 			CommandType command;
@@ -517,7 +329,7 @@ namespace DatabaseModelLib
 
 			try
 			{
-				connection = await OpenConnection();
+				connection = await OpenConnectionAsync();
 
 				transaction = connection.BeginTransaction();
 
@@ -560,7 +372,7 @@ namespace DatabaseModelLib
 
 			try
 			{
-				connection = await OpenConnection();
+				connection = await OpenConnectionAsync();
 
 				command = CreateUpdateCommand<DataType>(Item, maxRevision);
 				command.Connection = connection;
@@ -585,7 +397,7 @@ namespace DatabaseModelLib
 
 			try
 			{
-				connection = await OpenConnection();
+				connection = await OpenConnectionAsync();
 
 				command = CreateDeleteCommand<DataType>(Data);
 				command.Connection = connection;
@@ -610,7 +422,7 @@ namespace DatabaseModelLib
 
 			try
 			{
-				connection = await OpenConnection();
+				connection = await OpenConnectionAsync();
 
 				command = CreateDeleteCommand<DataType>(Key);
 				command.Connection = connection;
@@ -634,7 +446,7 @@ namespace DatabaseModelLib
 
 			try
 			{
-				connection = await OpenConnection();
+				connection = await OpenConnectionAsync();
 
 				Command.Connection = connection;
 
@@ -660,7 +472,7 @@ namespace DatabaseModelLib
 
 			try
 			{
-				connection = await OpenConnection();
+				connection = await OpenConnectionAsync();
 
 				Command.Connection = connection;
 
@@ -717,7 +529,7 @@ namespace DatabaseModelLib
 
 			try
 			{
-				connection = await OpenConnection();
+				connection = await OpenConnectionAsync();
 
 				Command.Connection = connection;
 
@@ -751,17 +563,6 @@ namespace DatabaseModelLib
 
 			return results;// Task.FromResult<IEnumerable<DataType>>(results);
 		}
-
-
-
-
-
-
-
-
-
-
-
 
 
 	}
