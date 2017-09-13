@@ -84,7 +84,21 @@ namespace DatabaseModelLib
 			this.maxRevision=Revision;
 		}
 
+		protected async Task<ConnectionType> OpenConnection()
+		{
+			ConnectionType connection=OnCreateConnection();
+			await connection.OpenAsync();
+			return connection;
+		}
+
 		protected abstract ConnectionType OnCreateConnection();
+
+		protected void CloseConnection(ConnectionType Connection)
+		{
+			if (Connection != null) Connection.Close();
+		}
+		//protected abstract void OnCloseConnection(ConnectionType Connection);
+
 
 		protected abstract void OnSetParameter<DataType>(CommandType Command, string Name, object Value);
 
@@ -326,9 +340,7 @@ namespace DatabaseModelLib
 			connection = null;
 			try
 			{
-
-				connection = OnCreateConnection();
-				await connection.OpenAsync();
+				connection = await OpenConnection();
 
 				command = OnCreateColumnCreateCommand(Column);
 				command.Connection = connection;
@@ -341,7 +353,7 @@ namespace DatabaseModelLib
 			}
 			finally
 			{
-				if (connection != null) connection.Close();
+				CloseConnection(connection);
 			}
 		}
 
@@ -353,9 +365,7 @@ namespace DatabaseModelLib
 			connection = null;
 			try
 			{
-
-				connection = OnCreateConnection();
-				await connection.OpenAsync();
+				connection = await OpenConnection();
 
 				command = OnCreateTableCreateCommand(Table,maxRevision);
 				command.Connection = connection;
@@ -368,7 +378,7 @@ namespace DatabaseModelLib
 			}
 			finally
 			{
-				if (connection != null) connection.Close();
+				CloseConnection(connection);
 			}
 		}
 
@@ -380,9 +390,7 @@ namespace DatabaseModelLib
 			connection = null;
 			try
 			{
-
-				connection = OnCreateConnection();
-				await connection.OpenAsync();
+				connection = await OpenConnection();
 
 				command = OnCreateTableDropCommand(Table);
 				command.Connection = connection;
@@ -395,7 +403,7 @@ namespace DatabaseModelLib
 			}
 			finally
 			{
-				if (connection != null) connection.Close();
+				CloseConnection(connection);
 			}
 		}
 
@@ -407,9 +415,7 @@ namespace DatabaseModelLib
 			connection = null;
 			try
 			{
-
-				connection = OnCreateConnection();
-				await connection.OpenAsync();
+				connection = await OpenConnection();
 
 				command = OnCreateRelationCreateCommand(Relation);
 				command.Connection = connection;
@@ -422,7 +428,7 @@ namespace DatabaseModelLib
 			}
 			finally
 			{
-				if (connection != null) connection.Close();
+				CloseConnection(connection);
 			}
 		}
 
@@ -446,12 +452,9 @@ namespace DatabaseModelLib
 
 		public async Task CreateAsync()
 		{
-			DbTransaction transaction;
 			try
 			{
-				
 				await OnCreateAsync();
-
 
 				foreach(ITable table in tables.Where(item=>item.Revision<=maxRevision))
 				{
@@ -485,9 +488,7 @@ namespace DatabaseModelLib
 		{
 			try
 			{
-
 				await OnBackupAsync(Path);
-
 			}
 			catch (Exception ex)
 			{
@@ -516,8 +517,8 @@ namespace DatabaseModelLib
 
 			try
 			{
-				connection = OnCreateConnection();
-				await connection.OpenAsync();
+				connection = await OpenConnection();
+
 				transaction = connection.BeginTransaction();
 
 				command = CreateInsertCommand<DataType>(Item,maxRevision);
@@ -546,7 +547,7 @@ namespace DatabaseModelLib
 			}
 			finally
 			{
-				if (connection != null) connection.Close();
+				CloseConnection(connection);
 			}
 
 
@@ -559,9 +560,7 @@ namespace DatabaseModelLib
 
 			try
 			{
-				connection = OnCreateConnection();
-				await connection.OpenAsync();
-
+				connection = await OpenConnection();
 
 				command = CreateUpdateCommand<DataType>(Item, maxRevision);
 				command.Connection = connection;
@@ -574,7 +573,7 @@ namespace DatabaseModelLib
 			}
 			finally
 			{
-				if (connection != null) connection.Close();
+				CloseConnection(connection);
 			}
 		}
 
@@ -586,8 +585,7 @@ namespace DatabaseModelLib
 
 			try
 			{
-				connection = OnCreateConnection();
-				await connection.OpenAsync();
+				connection = await OpenConnection();
 
 				command = CreateDeleteCommand<DataType>(Data);
 				command.Connection = connection;
@@ -599,7 +597,7 @@ namespace DatabaseModelLib
 			}
 			finally
 			{
-				if (connection != null) connection.Close();
+				CloseConnection(connection);
 			}
 
 
@@ -612,8 +610,7 @@ namespace DatabaseModelLib
 
 			try
 			{
-				connection = OnCreateConnection();
-				await connection.OpenAsync();
+				connection = await OpenConnection();
 
 				command = CreateDeleteCommand<DataType>(Key);
 				command.Connection = connection;
@@ -625,7 +622,7 @@ namespace DatabaseModelLib
 			}
 			finally
 			{
-				if (connection != null) connection.Close();
+				CloseConnection(connection);
 			}
 
 
@@ -637,8 +634,7 @@ namespace DatabaseModelLib
 
 			try
 			{
-				connection = OnCreateConnection();
-				await connection.OpenAsync();
+				connection = await OpenConnection();
 
 				Command.Connection = connection;
 
@@ -650,7 +646,7 @@ namespace DatabaseModelLib
 			}
 			finally
 			{
-				if (connection != null) connection.Close();
+				CloseConnection(connection);
 			}
 
 
@@ -664,8 +660,7 @@ namespace DatabaseModelLib
 
 			try
 			{
-				connection = OnCreateConnection();
-				await connection.OpenAsync();
+				connection = await OpenConnection();
 
 				Command.Connection = connection;
 
@@ -678,7 +673,7 @@ namespace DatabaseModelLib
 			}
 			finally
 			{
-				if (connection != null) connection.Close();
+				CloseConnection(connection);
 			}
 
 
@@ -722,8 +717,7 @@ namespace DatabaseModelLib
 
 			try
 			{
-				connection = OnCreateConnection();
-				await connection.OpenAsync();
+				connection = await OpenConnection();
 
 				Command.Connection = connection;
 
@@ -752,7 +746,7 @@ namespace DatabaseModelLib
 			}
 			finally
 			{
-				if (connection != null) connection.Close();
+				CloseConnection(connection);
 			}
 
 			return results;// Task.FromResult<IEnumerable<DataType>>(results);
