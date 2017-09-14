@@ -16,11 +16,13 @@ namespace DatabaseUpgraderLib
 		Task CreateColumnAsync(IColumn Column);*/
 
 
-		Task<bool> ExistsAsync();
-		Task CreateAsync();
+		Task<bool> DatabaseExistsAsync();
+		Task<bool> SchemaExistsAsync();
+		Task CreateDatabaseAsync();
+		Task CreateSchemaAsync();
 		Task BackupAsync(string Path);
 
-		void SetMaxRevision(int Revision);
+		//void SetMaxRevision(int Revision);
 	}
 
 	

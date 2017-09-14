@@ -10,7 +10,7 @@ using SqlDatabaseModelLib;
 
 namespace SqlDatabaseUpgraderLib
 {
-	public class SqlDatabaseUpgrader : DatabaseUpgrader<SqlConnection, SqlCommand>
+	public class SqlDatabaseUpgrader : DatabaseUpgrader<SqlConnection, SqlCommand,SqlTransaction>
 	{
 		
 		public SqlDatabaseUpgrader(SqlDatabase Database) : base(Database)
@@ -20,7 +20,8 @@ namespace SqlDatabaseUpgraderLib
 		protected override SqlConnection OnCreateConnection()
 		{
 			SqlConnection connection;
-			connection = new SqlConnection(@"Data Source=" + ((SqlDatabase)Database).DataSource  + ";Integrated Security=True" + ((SqlDatabase)Database).AdditionalParameters == null ? "" : ";" + ((SqlDatabase)Database).AdditionalParameters);
+			connection = new SqlConnection(@"Data Source=" + ((SqlDatabase)Database).DataSource + ";Integrated Security=True;");
+			if (((SqlDatabase)Database).AdditionalParameters != null) connection.ConnectionString += ((SqlDatabase)Database).AdditionalParameters;
 			return connection;
 		}
 
@@ -110,7 +111,7 @@ namespace SqlDatabaseUpgraderLib
 
 
 
-		protected override async Task<bool> OnExistsAsync()
+		protected override async Task<bool> OnDatabaseExistsAsync()
 		{
 			SqlCommand command;
 			SqlConnection connection = null;
@@ -128,6 +129,24 @@ namespace SqlDatabaseUpgraderLib
 			}
 		}
 
+		protected override async Task<bool> OnSchemaExistsAsync()
+		{
+			SqlCommand command;
+			SqlConnection connection = null;
+			SqlDataReader reader;
+
+			using (connection = OnCreateConnection())
+			{
+				await connection.OpenAsync();
+
+				command = new SqlCommand("select name from "+Database.Name+".sys.tables where name = 'UpgradeLog'");
+				command.Connection = connection;
+
+				reader = await command.ExecuteReaderAsync();
+				return reader.HasRows;
+			}
+		}
+
 		protected override Task OnBackupAsync(string Path)
 		{
 			throw new NotImplementedException();
@@ -138,25 +157,31 @@ namespace SqlDatabaseUpgraderLib
 			SqlCommand command;
 			SqlConnection connection = null;
 
-			connection = OnCreateConnection();
-			await connection.OpenAsync();
+			using (connection = OnCreateConnection())
+			{
+				await connection.OpenAsync();
 
-			command = new SqlCommand("drop database [" + Database.Name + "]");
-			command.Connection = connection;
+				command = new SqlCommand("drop database [" + Database.Name + "]");
+				command.Connection = connection;
 
-			await command.ExecuteNonQueryAsync();
+				await command.ExecuteNonQueryAsync();
+			}
 		}
 
-		protected override async Task OnCreatingAsync(SqlConnection Connection)
+		protected override async Task OnCreateDatabaseAsync()
 		{
 			SqlCommand command;
+			SqlConnection connection;
 
-			command = new SqlCommand("create database [" + Database.Name + "]");
-			command.Connection = Connection;
+			using (connection = OnCreateConnection())
+			{
+				await connection.OpenAsync();
 
-			await command.ExecuteNonQueryAsync();
-			Connection.ChangeDatabase(Database.Name);
-			
+				command = new SqlCommand("create database [" + Database.Name + "]");
+				command.Connection = connection;
+
+				await command.ExecuteNonQueryAsync();
+			}
 		}
 
 

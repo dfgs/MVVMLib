@@ -215,7 +215,7 @@ namespace DatabaseModelLib
 
 		protected abstract CommandType OnCreateIdentityCommand<DataType>();
 
-		private CommandType CreateSelectCommand<DataType>(Filter<DataType> Filter, IEnumerable<IColumn<DataType>> Orders,int Revision)
+		public CommandType CreateSelectCommand<DataType>(Filter<DataType> Filter, IEnumerable<IColumn<DataType>> Orders,int Revision)
 		{
 			string sql;
 			CommandType command;
@@ -252,7 +252,7 @@ namespace DatabaseModelLib
 
 			return command;
 		}
-		private CommandType CreateUpdateCommand<DataType>(DataType Item, int Revision)
+		public CommandType CreateUpdateCommand<DataType>(DataType Item, int Revision)
 		{
 			string sql;
 			CommandType command;
@@ -276,7 +276,7 @@ namespace DatabaseModelLib
 
 			return command;
 		}
-		private CommandType CreateInsertCommand<DataType>(DataType Item,int Revision)
+		public CommandType CreateInsertCommand<DataType>(DataType Item,int Revision)
 		{
 			string sql;
 			CommandType command;
@@ -295,11 +295,11 @@ namespace DatabaseModelLib
 
 			return command;
 		}
-		private CommandType CreateIdentityCommand<DataType>()
+		public CommandType CreateIdentityCommand<DataType>()
 		{
 			return OnCreateIdentityCommand<DataType>();
 		}
-		private CommandType CreateDeleteCommand<DataType>(object Key)
+		public CommandType CreateDeleteCommand<DataType>(object Key)
 		{
 			string sql;
 			CommandType command;
@@ -313,7 +313,7 @@ namespace DatabaseModelLib
 			
 			return command;
 		}
-		private CommandType CreateDeleteCommand<DataType>(DataType Item)
+		public CommandType CreateDeleteCommand<DataType>(DataType Item)
 		{
 			return CreateDeleteCommand<DataType>(OnConvertToDbValue(Schema<DataType>.PrimaryKey, Item));
 		}

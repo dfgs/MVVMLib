@@ -10,9 +10,10 @@ using System.Threading.Tasks;
 namespace DatabaseUpgraderLib
 {
 	
-	public abstract class DatabaseUpgrader<ConnectionType, CommandType>
+	public abstract class DatabaseUpgrader<ConnectionType, CommandType,TransactionType>:IDatabaseUpgrader
 		where ConnectionType : DbConnection
 		where CommandType : DbCommand, new()
+		where TransactionType:DbTransaction
 	{
 		private Database<ConnectionType,CommandType> database;
 		public Database<ConnectionType, CommandType> Database
@@ -54,6 +55,8 @@ namespace DatabaseUpgraderLib
 			upgradeLogs = new Table<UpgradeLog>();
 		}
 
+
+
 		protected virtual string OnFormatColumnName(IColumn Column)
 		{
 			return "[" + Column.Name + "]";
@@ -69,49 +72,60 @@ namespace DatabaseUpgraderLib
 		protected abstract CommandType OnCreateRelationCreateCommand(IRelation Relation);
 
 
-		private async Task CreateColumnAsync(ConnectionType Connection, IColumn Column)
+		private async Task CreateColumnAsync(ConnectionType Connection, TransactionType Transaction, IColumn Column)
 		{
 			CommandType command;
 
 			command = OnCreateColumnCreateCommand(Column);
 			command.Connection = Connection;
+			command.Transaction = Transaction;
 			await command.ExecuteNonQueryAsync();
 		}
 
-		private async Task CreateTableAsync(ConnectionType Connection, ITable Table)
+		private async Task CreateTableAsync(ConnectionType Connection, TransactionType Transaction, ITable Table)
 		{
 			CommandType command;
 
 			command = OnCreateTableCreateCommand(Table);
 			command.Connection = Connection;
+			command.Transaction = Transaction;
 			await command.ExecuteNonQueryAsync();
 		}
 
-		private async Task DropTableAsync(ConnectionType Connection, ITable Table)
+		private async Task DropTableAsync(ConnectionType Connection, TransactionType Transaction, ITable Table)
 		{
 			CommandType command;
 
 			command = OnCreateTableDropCommand(Table);
 			command.Connection = Connection;
+			command.Transaction = Transaction;
 			await command.ExecuteNonQueryAsync();
 		}
 
-		private async Task CreateRelationAsync(ConnectionType Connection, IRelation Relation)
+		private async Task CreateRelationAsync(ConnectionType Connection, TransactionType Transaction, IRelation Relation)
 		{
 			CommandType command;
 
 			command = OnCreateRelationCreateCommand(Relation);
 			command.Connection = Connection;
+			command.Transaction = Transaction;
 			await command.ExecuteNonQueryAsync();
 		}
 
 
 
-		protected abstract Task<bool> OnExistsAsync();
-		public async Task<bool> ExistsAsync()
+		protected abstract Task<bool> OnDatabaseExistsAsync();
+		public async Task<bool> DatabaseExistsAsync()
 		{
-			return await OnExistsAsync();
+			return await OnDatabaseExistsAsync();
 		}
+
+		protected abstract Task<bool> OnSchemaExistsAsync();
+		public async Task<bool> SchemaExistsAsync()
+		{
+			return await OnSchemaExistsAsync();
+		}
+
 
 		protected abstract Task OnDropAsync();
 		public async Task DropAsync()
@@ -127,34 +141,43 @@ namespace DatabaseUpgraderLib
 
 		protected abstract ConnectionType OnCreateConnection();
 
-		protected abstract Task OnCreatingAsync(ConnectionType Connection);
+		protected abstract Task OnCreateDatabaseAsync();
 
-		public async Task CreateAsync()
+		public async Task CreateDatabaseAsync()
+		{
+			await OnCreateDatabaseAsync();
+		}
+
+		public async Task CreateSchemaAsync()
 		{
 			ConnectionType connection = null;
-			DbTransaction transaction=null;
+			TransactionType transaction = null;
 
 			try
 			{
 				connection = OnCreateConnection();
 				await connection.OpenAsync();
-				transaction=connection.BeginTransaction();
+				connection.ChangeDatabase(Database.Name);
+				transaction = (TransactionType)connection.BeginTransaction();
 
-				await OnCreatingAsync(connection);
-
-				await CreateTableAsync(connection,upgradeLogs);
+				await CreateTableAsync(connection, transaction, upgradeLogs);
 
 				foreach (ITable table in Database.Tables.Where(item => item.Revision == 0))
 				{
-					await CreateTableAsync(connection, table);
+					await CreateTableAsync(connection, transaction, table);
 				}
 
 				foreach (IRelation relation in Database.Relations.Where(item => item.Revision == 0))
 				{
-					await CreateRelationAsync(connection, relation);
+					await CreateRelationAsync(connection, transaction, relation);
 				}
 
-				await OnCreatedAsync();
+				foreach(CommandType command in OnGetCustomSchemaCommands())
+				{
+					command.Connection = connection;
+					command.Transaction = transaction;
+					await command.ExecuteNonQueryAsync();
+				}
 
 				transaction.Commit();
 				connection.Close();
@@ -171,9 +194,9 @@ namespace DatabaseUpgraderLib
 
 		}
 
-		protected virtual async Task OnCreatedAsync()
+		protected virtual IEnumerable<CommandType> OnGetCustomSchemaCommands()
 		{
-			await Task.Yield();
+			yield break;
 		}
 
 
@@ -197,13 +220,15 @@ namespace DatabaseUpgraderLib
 			return GetTargetRevision() != await GetDatabaseRevisionAsync();
 		}
 
+	
+
 		public async Task UpgradeAsync()
 		{
 			int targetRevision;
 			int currentRevision;
 			UpgradeLog log;
 			ConnectionType connection=null;
-			DbTransaction transaction = null;
+			TransactionType transaction = null;
 
 			currentRevision = await GetDatabaseRevisionAsync();
 			targetRevision = GetTargetRevision();
@@ -212,20 +237,26 @@ namespace DatabaseUpgraderLib
 			{
 				connection = OnCreateConnection();
 				await connection.OpenAsync();
-				transaction = connection.BeginTransaction();
+				connection.ChangeDatabase(Database.Name);
 
 				while (currentRevision != targetRevision)
 				{
+					transaction = (TransactionType)connection.BeginTransaction();
 					currentRevision++;
 					//database.SetMaxRevision(currentRevision);
-					await OnUpgradeAsync(connection,currentRevision);
+					await OnUpgradeAsync(connection,transaction, currentRevision);
 					log = new UpgradeLog() { Date = DateTime.Now, Revision = currentRevision };
 
-					await OnUpgradedTo(currentRevision);
+					foreach(CommandType command in OnGetCustomUpgradeCommands(currentRevision))
+					{
+						command.Connection = connection;
+						command.Transaction = transaction;
+						await command.ExecuteNonQueryAsync();
+					}
 					await database.InsertAsync(log);
+					transaction.Commit();
 				}
 
-				transaction.Commit();
 				connection.Close();
 			}
 			catch (Exception ex)
@@ -237,26 +268,26 @@ namespace DatabaseUpgraderLib
 
 		}
 
-		protected virtual async Task OnUpgradedTo(int Revision)
+		protected virtual IEnumerable<CommandType> OnGetCustomUpgradeCommands(int Revision)
 		{
-			await Task.Yield();
+			yield break;
 		}
 
        
 
-        protected virtual async Task OnUpgradeAsync(ConnectionType Connection,int TargetRevision)
+        protected virtual async Task OnUpgradeAsync(ConnectionType Connection, TransactionType Transaction, int TargetRevision)
 		{
 			foreach (ITable table in database.Tables.Where(item=>item.Revision==TargetRevision))
 			{
-				await CreateTableAsync(Connection, table);
+				await CreateTableAsync(Connection, Transaction, table);
 			}
 			foreach (IColumn column in database.Tables.SelectMany(item => item.Columns).Where(item => item.Revision == TargetRevision))
 			{
-				await CreateColumnAsync(Connection, column);
+				await CreateColumnAsync(Connection, Transaction, column);
 			}
 			foreach (IRelation relation in database.Relations.Where(item => item.Revision == TargetRevision))
 			{
-				await CreateRelationAsync(Connection, relation);
+				await CreateRelationAsync(Connection, Transaction, relation);
 			}
 
 		}

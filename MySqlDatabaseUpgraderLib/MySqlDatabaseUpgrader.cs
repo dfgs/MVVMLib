@@ -11,7 +11,7 @@ using System.Data.Common;
 
 namespace MySqlDatabaseUpgraderLib
 {
-	public class MySqlDatabaseUpgrader : DatabaseUpgrader<MySqlConnection, MySqlCommand>
+	public class MySqlDatabaseUpgrader : DatabaseUpgrader<MySqlConnection, MySqlCommand,MySqlTransaction>
 	{
 	
 
@@ -93,7 +93,7 @@ namespace MySqlDatabaseUpgraderLib
 
 
 
-		protected override async Task<bool> OnExistsAsync()
+		protected override async Task<bool> OnDatabaseExistsAsync()
 		{
 			MySqlCommand command;
 			MySqlConnection connection = null;
@@ -111,6 +111,11 @@ namespace MySqlDatabaseUpgraderLib
 			}
 		}
 
+		protected override Task<bool> OnSchemaExistsAsync()
+		{
+			throw new NotImplementedException();
+		}
+
 		protected override Task OnBackupAsync(string Path)
 		{
 			throw new NotImplementedException();
@@ -121,26 +126,32 @@ namespace MySqlDatabaseUpgraderLib
 			MySqlCommand command;
 			MySqlConnection connection = null;
 
-			connection = OnCreateConnection();
-			await connection.OpenAsync();
+			using (connection = OnCreateConnection())
+			{
+				await connection.OpenAsync();
 
-			command = new MySqlCommand("drop database " + Database.Name);
-			command.Connection = connection;
+				command = new MySqlCommand("drop database " + Database.Name);
+				command.Connection = connection;
 
-			await command.ExecuteNonQueryAsync();
+				await command.ExecuteNonQueryAsync();
+			}
 		}
 
-		protected override async Task OnCreatingAsync(MySqlConnection Connection)
+		protected override async Task OnCreateDatabaseAsync()
 		{
 			MySqlCommand command;
+			MySqlConnection connection = null;
 
-			command = new MySqlCommand("create database " + Database.Name);
-			command.Connection = Connection;
-			await command.ExecuteNonQueryAsync();
+			using (connection = OnCreateConnection())
+			{
+				command = new MySqlCommand("create database " + Database.Name);
+				command.Connection = connection;
+				await command.ExecuteNonQueryAsync();
 
-			command = new MySqlCommand("GRANT ALL PRIVILEGES ON " + Database.Name + ".* TO '" + ((MySqlDatabase)Database).Login + "'@'%' WITH GRANT OPTION;");
-			command.Connection = Connection;
-			await command.ExecuteNonQueryAsync();
+				command = new MySqlCommand("GRANT ALL PRIVILEGES ON " + Database.Name + ".* TO '" + ((MySqlDatabase)Database).Login + "'@'%' WITH GRANT OPTION;");
+				command.Connection = connection;
+				await command.ExecuteNonQueryAsync();
+			}
 		}
 
 

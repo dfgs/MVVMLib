@@ -12,7 +12,7 @@ using ModelLib;
 
 namespace SqlCEDatabaseUpgraderLib
 {
-	public class SqlCEDatabaseUpgrader : DatabaseUpgrader<SqlCeConnection, SqlCeCommand>
+	public class SqlCEDatabaseUpgrader : DatabaseUpgrader<SqlCeConnection, SqlCeCommand,SqlCeTransaction>
 	{
 
 		public SqlCEDatabaseUpgrader(SqlCEDatabase Database) : base(Database)
@@ -119,11 +119,15 @@ namespace SqlCEDatabaseUpgraderLib
 
 
 
-		protected override async Task<bool> OnExistsAsync()
+		protected override async Task<bool> OnDatabaseExistsAsync()
 		{
 			return await Task.FromResult(System.IO.File.Exists(((SqlCEDatabase)Database).FileName));
 		}
 
+		protected override Task<bool> OnSchemaExistsAsync()
+		{
+			throw new NotImplementedException();
+		}
 
 		protected override async Task OnBackupAsync(string Path)
 		{
@@ -136,7 +140,7 @@ namespace SqlCEDatabaseUpgraderLib
 			await Task.Yield();
 		}
 
-		protected override async Task OnCreatingAsync(SqlCeConnection Connection)
+		protected override async Task OnCreateDatabaseAsync()
 		{
 			SqlCeEngine engine = new SqlCeEngine(@"Data Source = " + ((SqlCEDatabase)Database).FileName);
 			engine.CreateDatabase();
