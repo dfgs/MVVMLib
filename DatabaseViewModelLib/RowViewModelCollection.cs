@@ -3,6 +3,7 @@ using DatabaseModelLib.Filters;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using ViewModelLib;
+using System;
 
 namespace DatabaseViewModelLib
 {
@@ -42,16 +43,15 @@ namespace DatabaseViewModelLib
 		{
 			return null;
 		}
-		protected virtual IEnumerable<IColumn<ModelType>> OnCreateOrders()
+		protected virtual IColumn<ModelType>[] OnCreateOrders()
 		{
-			yield break;
+			return null;
 		}
 
-		/*
-		protected override async Task<IEnumerable<ModelType>> OnLoadModelItemsAsync()
+		protected override async Task<IEnumerable<ModelType>> OnLoadModelAsync()
 		{
 			return await Database.SelectAsync<ModelType>(() => { return OnCreateEmptyModelAsync().Result; },OnCreateFilter(),OnCreateOrders() );
-		}*/
+		}
 
 
 	}

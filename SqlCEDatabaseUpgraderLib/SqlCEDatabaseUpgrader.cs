@@ -9,6 +9,7 @@ using DatabaseModelLib;
 using SqlCEDatabaseModelLib;
 using System.Data.SqlServerCe;
 using ModelLib;
+using System.Data.Common;
 
 namespace SqlCEDatabaseUpgraderLib
 {
@@ -22,6 +23,11 @@ namespace SqlCEDatabaseUpgraderLib
 		protected override SqlCeConnection OnCreateConnection()
 		{
 			return new SqlCeConnection(@"Data Source=" + ((SqlCEDatabase)Database).FileName + ";Persist Security Info=False;");
+		}
+
+		protected override void OnChangeDatabase(SqlCeConnection Connection)
+		{
+			// nothing to do	
 		}
 
 		private string GetTypeName(IColumn Column)
@@ -58,25 +64,33 @@ namespace SqlCEDatabaseUpgraderLib
 
 		protected override SqlCeCommand OnCreateColumnCreateCommand(IColumn Column)
 		{
-			string sql;
 			SqlCeCommand command;
 
-			sql = "alter table " + OnFormatTableName(Column.TableName) + " ADD COLUMN "
-				+ OnFormatColumnName(Column) + " " + GetTypeName(Column) + (Column.IsNullable ? " NULL" : " NOT NULL"); ;
-			if (Column.DataType != typeof(Text) && Column.DataType != typeof(DateTime))
+			command=new SqlCeCommand( "alter table " + OnFormatTableName(Column.TableName) + " ADD COLUMN "
+				+ OnFormatColumnName(Column) + " " + GetTypeName(Column) + (Column.IsNullable ? " NULL" : " NOT NULL"));
+			if (Column.DataType == typeof(Text))
 			{
 				if (Column.DefaultValue != null)
 				{
-					sql += " DEFAULT(" + Column.DefaultValue.ToString() + ")";
+					command.CommandText += " DEFAULT ('" + Column.DefaultValue.ToString() + "')";
 				}
+
+			}
+			else if (Column.DataType == typeof(DateTime))
+			{
+				if (Column.DefaultValue != null)
+				{
+					command.CommandText += " DEFAULT ('" + ((DateTime)Column.DefaultValue).ToString("s") + "')";
+				}
+
 			}
 			else
 			{
-				if (Column.DefaultValue != null) sql += " DEFAULT('" + Column.DefaultValue.ToString() + "')";
+				if (Column.DefaultValue != null)
+				{
+					command.CommandText += " DEFAULT (" + Column.DefaultValue.ToString() + ")";
+				}
 			}
-
-			command = new SqlCeCommand(sql);
-
 
 			return command;
 		}
@@ -124,9 +138,26 @@ namespace SqlCEDatabaseUpgraderLib
 			return await Task.FromResult(System.IO.File.Exists(((SqlCEDatabase)Database).FileName));
 		}
 
-		protected override Task<bool> OnSchemaExistsAsync()
+		protected override async Task<bool> OnSchemaExistsAsync()
 		{
-			throw new NotImplementedException();
+			SqlCeCommand command;
+			SqlCeConnection connection = null;
+			DbDataReader reader;
+			bool result = false;
+
+			using (connection = OnCreateConnection())
+			{
+				await connection.OpenAsync();
+
+				command = new SqlCeCommand("SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'UpgradeLog'");
+				command.Connection = connection;
+
+				reader = await command.ExecuteReaderAsync();
+				result=await reader.ReadAsync();
+				reader.Close();
+			}
+			return result;
+
 		}
 
 		protected override async Task OnBackupAsync(string Path)

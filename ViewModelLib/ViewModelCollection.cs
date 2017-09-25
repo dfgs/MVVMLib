@@ -285,11 +285,11 @@ namespace ViewModelLib
 			return vm;
 		}
 
-		public async Task<bool> AddAsync(ItemViewModelType ViewModel, bool ShowEditWindow = false, bool ApplyOnModel= true)
+		public async Task<bool> AddAsync(ItemViewModelType ViewModel, bool ShowEditWindow = false)
 		{
-			return await AddAsync(items.Count, ViewModel,ShowEditWindow, ApplyOnModel);
+			return await AddAsync(items.Count, ViewModel,ShowEditWindow);
 		}
-		public async Task<bool> AddAsync(int Index,ItemViewModelType ViewModel,bool ShowEditWindow=false, bool ApplyOnModel = true)
+		public async Task<bool> AddAsync(int Index,ItemViewModelType ViewModel,bool ShowEditWindow=false)
 		{
 			Window window;
 			ViewModelSchema schema;
@@ -313,8 +313,8 @@ namespace ViewModelLib
 				if (!window.ShowDialog() ?? false) return false;
 			}
 
-			if (ApplyOnModel)
-			{
+			//if (ApplyOnModel)
+			//{
 				try
 				{
 					if (!await OnAddInModelAsync(ViewModel)) return false;
@@ -324,7 +324,7 @@ namespace ViewModelLib
 					ViewModelLib.ViewModel.Log(ex);
 					return false;
 				}
-			}
+			//}
 
 			items.Insert(Index,ViewModel);
 			if (SelectItemOnAdd) SelectedItem = ViewModel;
@@ -333,7 +333,7 @@ namespace ViewModelLib
 			return true;
 		}
 
-		public async Task<bool> RemoveAsync(ItemModelType Model, bool ApplyOnModel = true)
+		public async Task<bool> RemoveAsync(ItemModelType Model)
 		{
 			ItemViewModelType vm;
 
@@ -341,15 +341,15 @@ namespace ViewModelLib
 			vm = this.FirstOrDefault(item => ReferenceEquals(item.Model, Model));
 			if (vm == null) return false;
 
-			return await RemoveAsync(vm, ApplyOnModel);
+			return await RemoveAsync(vm);
 		}
-		public async Task<bool> RemoveAsync(ItemViewModelType ViewModel, bool ApplyOnModel = true)
+		public async Task<bool> RemoveAsync(ItemViewModelType ViewModel)
 		{
 			int index;
 
 			index = items.IndexOf(ViewModel);
-			if (ApplyOnModel)
-			{
+			//if (ApplyOnModel)
+			//{
 				try
 				{
 					if (!await OnRemoveFromModelAsync(ViewModel)) return false;
@@ -359,7 +359,7 @@ namespace ViewModelLib
 					ViewModelLib.ViewModel.Log(ex);
 					return false;
 				}
-			}
+			//}
 
 			items.Remove(ViewModel);
 			await OnItemRemovedAsync(ViewModel, index);

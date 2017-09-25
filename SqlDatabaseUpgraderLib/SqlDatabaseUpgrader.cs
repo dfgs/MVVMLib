@@ -131,7 +131,7 @@ namespace SqlDatabaseUpgraderLib
 
 		protected override async Task<bool> OnSchemaExistsAsync()
 		{
-			SqlCommand command;
+			SqlCeCommand command;
 			SqlConnection connection = null;
 			SqlDataReader reader;
 
@@ -139,12 +139,13 @@ namespace SqlDatabaseUpgraderLib
 			{
 				await connection.OpenAsync();
 
-				command = new SqlCommand("select name from "+Database.Name+".sys.tables where name = 'UpgradeLog'");
+				command = new SqlCommand("SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'UpgradeLog'");
 				command.Connection = connection;
 
 				reader = await command.ExecuteReaderAsync();
 				return reader.HasRows;
 			}
+			
 		}
 
 		protected override Task OnBackupAsync(string Path)

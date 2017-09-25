@@ -54,6 +54,10 @@ namespace ViewModelLib
         {
             get { return viewModels; }
         }
+		public IViewModel ViewModel
+		{
+			get { return viewModels.First(); }
+		}
 
         public IViewModelProperty this[string Name]
         {

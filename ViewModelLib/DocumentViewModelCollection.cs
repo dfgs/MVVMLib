@@ -171,7 +171,7 @@ namespace ViewModelLib
 		}
 		private async void CloseCommandExecute(object Parameter)
 		{
-			await RemoveAsync(SelectedItem, true);
+			await RemoveAsync(SelectedItem);
 		}
 
 	}

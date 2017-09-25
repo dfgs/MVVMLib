@@ -141,6 +141,12 @@ namespace DatabaseUpgraderLib
 
 		protected abstract ConnectionType OnCreateConnection();
 
+		protected virtual void OnChangeDatabase(ConnectionType Connection)
+		{
+			Connection.ChangeDatabase(Database.Name);
+		}
+
+
 		protected abstract Task OnCreateDatabaseAsync();
 
 		public async Task CreateDatabaseAsync()
@@ -157,7 +163,7 @@ namespace DatabaseUpgraderLib
 			{
 				connection = OnCreateConnection();
 				await connection.OpenAsync();
-				connection.ChangeDatabase(Database.Name);
+				OnChangeDatabase(connection);
 				transaction = (TransactionType)connection.BeginTransaction();
 
 				await CreateTableAsync(connection, transaction, upgradeLogs);
@@ -237,7 +243,7 @@ namespace DatabaseUpgraderLib
 			{
 				connection = OnCreateConnection();
 				await connection.OpenAsync();
-				connection.ChangeDatabase(Database.Name);
+				OnChangeDatabase(connection);
 
 				while (currentRevision != targetRevision)
 				{
