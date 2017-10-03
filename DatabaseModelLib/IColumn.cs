@@ -49,11 +49,11 @@ namespace DatabaseModelLib
 		
 	}
 
-	public interface IColumn<DataType>:IColumn
+	public interface IColumn<ModelType>:IColumn
 	{
 		
-		object GetValue(DataType Component);
-		void SetValue(DataType Component,object Value);
+		object GetValue(ModelType Component);
+		void SetValue(ModelType Component,object Value);
 		//object GetDbValue(DataType Component);
 	}
 }

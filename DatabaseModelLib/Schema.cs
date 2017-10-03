@@ -90,7 +90,7 @@ namespace DatabaseModelLib
 			object value1,value2;
 			foreach (IColumn<DataType> column in columns)
 			{
-				if ((column.IsIdentity) || (column.IsVirtual)) continue;
+				if ((column.IsIdentity) || (column.IsVirtual) || (column.DataType==typeof(byte[]))) continue;
 				value1 = column.GetValue(Source);
 				value2 = column.GetValue(Destination);
 				if (!ValueType.Equals(value1, value2))

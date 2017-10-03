@@ -248,7 +248,15 @@ namespace ViewModelLib.ViewModelProperties
 			}
 			else
 			{
-				convertedValue = converter.ConvertFrom(Value);
+				try
+				{
+					convertedValue = converter.ConvertFrom(Value);
+				}
+				catch(Exception ex)
+				{
+					ViewModel.Log(ex);
+					convertedValue = initialValue;
+				}
 			}
 			foreach (IViewModel viewModel in viewModels)
 			{

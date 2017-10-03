@@ -52,7 +52,11 @@ namespace SqlDatabaseUpgraderLib
 				case "TimeSpan":
 					result = "Time(7)";
 					break;
-				default: throw (new NotImplementedException("Cannot convert CLR type " + Column.DataType.Name));
+				case "Byte[]":
+					result = "varbinary(max)";
+					break;
+				default:
+					throw (new NotImplementedException("Cannot convert CLR type " + Column.DataType.Name));
 
 			}
 			if (Column.IsIdentity) result += " IDENTITY(1, 1)";
@@ -131,13 +135,14 @@ namespace SqlDatabaseUpgraderLib
 
 		protected override async Task<bool> OnSchemaExistsAsync()
 		{
-			SqlCeCommand command;
+			SqlCommand command;
 			SqlConnection connection = null;
 			SqlDataReader reader;
 
 			using (connection = OnCreateConnection())
 			{
 				await connection.OpenAsync();
+				connection.ChangeDatabase(Database.Name);
 
 				command = new SqlCommand("SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'UpgradeLog'");
 				command.Connection = connection;
