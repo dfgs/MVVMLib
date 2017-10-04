@@ -220,7 +220,10 @@ namespace ViewModelLib
 		}
 		private async void EditCommandExecute(object Parameter)
 		{
-			await EditAsync(Parameter as ItemViewModelType);
+			ItemViewModelType item;
+			item = Parameter as ItemViewModelType;
+			if (item == null) await EditAsync();
+			else await EditAsync(item);
 		}
 
 		public async virtual Task OnEditCommandExecuted(ItemViewModelType ViewModel)
@@ -228,49 +231,65 @@ namespace ViewModelLib
 			await Task.Yield();
 		}
 
-		public async Task EditAsync(ItemViewModelType Item)
+		public async Task<bool> EditAsync(bool ShowEditWindow = true)
 		{
-			ItemViewModelType[] items;
-			Window window;
-			ViewModelSchema schema;
-			bool result;
-
-			if (Item == null)
-			{
-				items = SelectedItems.ToArray();
-			}
-			else
-			{
-				items = new ItemViewModelType[] { Item };
-			}
-
-			schema = new ViewModelSchema(items, typeof(ItemViewModelType));
-
-			window = OnCreateEditWindow();
-			window.Owner = Application.Current.MainWindow;
-			schema.Window = window;
-			window.DataContext = schema;
-			result = window.ShowDialog() ?? false;
-			if (result)
-			{
-				foreach (ItemViewModelType viewModel in items)
-				{
-					try
-					{
-						if (await OnEditInModelAsync(viewModel)) await OnEditCommandExecuted(viewModel);
-						else schema.Revert(viewModel);
-					}
-					catch (Exception ex)
-					{
-						ViewModelLib.ViewModel.Log(ex);
-						schema.Revert(viewModel);
-					}
-					
-				}
-			}
-			else schema.Revert();
+			return await EditAsync(SelectedItems.ToArray(), ShowEditWindow);
+		}
+		public async Task<bool> EditAsync(ItemViewModelType Item, bool ShowEditWindow = true)
+		{
+			return await EditAsync(new ItemViewModelType[] { Item }, ShowEditWindow);
 		}
 
+		public async Task<bool> EditAsync(ItemViewModelType[] Items, bool ShowEditWindow = true)
+		{
+			ViewModelSchema schema;
+
+			schema = new ViewModelSchema(Items, typeof(ItemViewModelType));
+
+			return await EditAsync(schema, ShowEditWindow);
+		}
+		public async Task<bool> EditAsync(ViewModelSchema Schema, bool ShowEditWindow = true)
+		{
+			Window window;
+			bool result;
+
+
+
+			if (ShowEditWindow)
+			{
+				window = OnCreateEditWindow();
+				window.Owner = Application.Current.MainWindow;
+				Schema.Window = window;
+				window.DataContext = Schema;
+				if (!window.ShowDialog() ?? false)
+				{
+					Schema.Revert();
+					return false;
+				}
+			}
+			
+			result = true;
+			foreach (ItemViewModelType viewModel in Schema.ViewModels)
+			{
+				try
+				{
+					if (await OnEditInModelAsync(viewModel)) await OnEditCommandExecuted(viewModel);
+					else
+					{
+						result = false;
+						Schema.Revert(viewModel);
+					}
+				}
+				catch (Exception ex)
+				{
+					result = false;
+					ViewModelLib.ViewModel.Log(ex);
+					Schema.Revert(viewModel);
+				}
+			}
+
+			return result;
+		}
 
 		public async Task<ItemViewModelType> AddAsync(ItemModelType Model, bool ShowEditWindow = false)
 		{

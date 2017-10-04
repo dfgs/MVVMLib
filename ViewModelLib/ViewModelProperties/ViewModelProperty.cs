@@ -95,7 +95,8 @@ namespace ViewModelLib.ViewModelProperties
 		}
 
 
-		private object initialValue;
+		private Dictionary<IViewModel,object> initialValues;
+
 		object IViewModelProperty.Value
 		{
 			get { return Value; }
@@ -118,6 +119,7 @@ namespace ViewModelLib.ViewModelProperties
 			ClearCommand = new ViewModelCommand(OnClearCommandCanExecute, OnClearCommandExecute);
 			EditCommand = new ViewModelCommand(OnEditCommandCanExecute, OnEditCommandExecute);
 
+			this.initialValues = new Dictionary<IViewModel, object>();
 			this.viewModels = ViewModels;
 			this.pd = pd;
 			this.isMandatory = IsMandatory;
@@ -202,28 +204,29 @@ namespace ViewModelLib.ViewModelProperties
 		private void LoadViewModelValue()
 		{
 			System.Type valType,underlyingType ;
-			object value;
+			object firstValue,value;
 			
 			valType = typeof(ValType);
 			underlyingType = System.Nullable.GetUnderlyingType(valType);
 
 			isMultiValue = false;
-			this.initialValue = pd.GetValue(viewModels.FirstOrDefault());
+			firstValue = pd.GetValue(viewModels.FirstOrDefault());
 			foreach(IViewModel vm in this.ViewModels)
 			{
 				value = pd.GetValue(vm);
-				if (ValueType.Equals(value, initialValue)) continue;
+				initialValues[vm] = value;
+				if (ValueType.Equals(value, firstValue)) continue;
 				isMultiValue = true;
 			}
 			IsLocked = IsMultiValue;
 
 			if (underlyingType == null)
 			{
-				this.Value = (ValType)System.Convert.ChangeType(initialValue, valType);
+				this.Value = (ValType)System.Convert.ChangeType(firstValue, valType);
 			}
 			else
 			{
-				this.Value = (ValType)initialValue;
+				this.Value = (ValType)firstValue;
 			}
 			
 		}
@@ -255,7 +258,7 @@ namespace ViewModelLib.ViewModelProperties
 				catch(Exception ex)
 				{
 					ViewModel.Log(ex);
-					convertedValue = initialValue;
+					convertedValue = initialValues.Values.First();
 				}
 			}
 			foreach (IViewModel viewModel in viewModels)
@@ -269,7 +272,7 @@ namespace ViewModelLib.ViewModelProperties
 
 			foreach (IViewModel viewModel in viewModels)
 			{
-				pd.SetValue(viewModel, initialValue);
+				pd.SetValue(viewModel, initialValues[viewModel]);
 			}
 
 		}
@@ -277,7 +280,7 @@ namespace ViewModelLib.ViewModelProperties
 		{
 			if (IsLocked) return;
 
-			pd.SetValue(ViewModel, initialValue);
+			pd.SetValue(ViewModel, initialValues[ViewModel]);
 		}
 
 		protected virtual void OnPropertyChanged(string PropertyName)
