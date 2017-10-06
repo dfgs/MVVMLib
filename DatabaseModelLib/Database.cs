@@ -208,6 +208,10 @@ namespace DatabaseModelLib
 		}
 		protected virtual object OnConvertFromDbValue<DataType>(IColumn<DataType> Column, object Value)
 		{
+			if (Column.DataType.IsEnum)
+			{
+				return Enum.ToObject(Column.DataType, Value);
+			}
 			if (Value == DBNull.Value) return null;
 			return Value;
 

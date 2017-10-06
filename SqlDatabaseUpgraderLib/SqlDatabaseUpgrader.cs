@@ -29,6 +29,8 @@ namespace SqlDatabaseUpgraderLib
 		{
 			string result;
 
+			if (Column.DataType.IsEnum) return "int";
+
 			switch (Column.DataType.Name)
 			{
 				case "Text":
