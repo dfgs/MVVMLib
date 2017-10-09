@@ -67,6 +67,7 @@
     <Compile Include="Attributes\PropertyAttribute.cs" />
     <Compile Include="DocumentViewModel.cs" />
     <Compile Include="DocumentViewModelCollection.cs" />
+    <Compile Include="ForeignProperty.cs" />
     <Compile Include="IViewModelCollection.cs" />
     <Compile Include="ListViewModel.cs" />
     <Compile Include="StaticViewModel.cs" />

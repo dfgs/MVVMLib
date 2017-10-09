@@ -45,6 +45,11 @@ namespace ViewModelLib
 		{
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(PropertyName));
 		}
+
+		internal void InvalidateProperty(string Name)
+		{
+			OnPropertyChanged(Name);
+		}
 	}
 
 	public abstract class ViewModel<ModelType>: ViewModel, IViewModel
