@@ -78,6 +78,7 @@
     <Compile Include="EditControl.xaml.cs">
       <DependentUpon>EditControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="LargeTimeSpanConverter.cs" />
     <Compile Include="ReadOnlyToEnabledConverter.cs" />
     <Compile Include="IValidate.cs" />
     <Compile Include="PropertyDataTemplateSelector.cs" />

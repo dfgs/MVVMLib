@@ -148,7 +148,7 @@ namespace DatabaseUpgraderLib
 
 
 		protected abstract Task OnCreateDatabaseAsync();
-
+		
 		public async Task CreateDatabaseAsync()
 		{
 			await OnCreateDatabaseAsync();
@@ -199,6 +199,7 @@ namespace DatabaseUpgraderLib
 			}
 
 		}
+
 
 		protected virtual IEnumerable<CommandType> OnGetCustomSchemaCommands()
 		{

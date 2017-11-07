@@ -16,7 +16,7 @@ namespace MySqlDatabaseUpgraderLib
 	
 
 
-		public MySqlDatabaseUpgrader(MySqlDatabase Database, string DataSource, string AdditionalParameters = null) : base(Database)
+		public MySqlDatabaseUpgrader(MySqlDatabase Database) : base(Database)
 		{
 		}
 
@@ -33,6 +33,12 @@ namespace MySqlDatabaseUpgraderLib
 
 			switch (Column.DataType.Name)
 			{
+				case "Byte":
+					result = "tinyint unsigned";
+					break;
+				case "Single":
+					result = "float";
+					break;
 				case "Text":
 					result = "longtext";
 					break;
@@ -111,9 +117,22 @@ namespace MySqlDatabaseUpgraderLib
 			}
 		}
 
-		protected override Task<bool> OnSchemaExistsAsync()
+		protected override async Task<bool> OnSchemaExistsAsync()
 		{
-			throw new NotImplementedException();
+			MySqlCommand command;
+			MySqlConnection connection = null;
+			DbDataReader reader;
+
+			using (connection = OnCreateConnection())
+			{
+				await connection.OpenAsync();
+
+				command = new MySqlCommand($"SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA='{Database.Name}' and TABLE_NAME='UpgradeLog'");
+				command.Connection = connection;
+
+				reader = await command.ExecuteReaderAsync();
+				return reader.HasRows;
+			}
 		}
 
 		protected override Task OnBackupAsync(string Path)
@@ -144,6 +163,7 @@ namespace MySqlDatabaseUpgraderLib
 
 			using (connection = OnCreateConnection())
 			{
+				await connection.OpenAsync();
 				command = new MySqlCommand("create database " + Database.Name);
 				command.Connection = connection;
 				await command.ExecuteNonQueryAsync();

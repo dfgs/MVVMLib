@@ -13,8 +13,9 @@
             <local:PropertyDataTemplateSelector x:Key="propertyDataTemplateSelector"/>
             <local:BoolToVisibilityConverter x:Key="boolToVisibilityConverter"/>
             <local:ReadOnlyToEnabledConverter x:Key="readOnlyToEnabledConverter"/>
-
-            <DataTemplate x:Key="TextViewModelProperty">
+			<local:LargeTimeSpanConverter x:Key="largeTimeSpanConverter"/>
+			
+			<DataTemplate x:Key="TextViewModelProperty">
                 <TextBox Text="{Binding Value,UpdateSourceTrigger=PropertyChanged}" />
             </DataTemplate>
 
@@ -63,6 +64,10 @@
             <DataTemplate x:Key="TimeSpanViewModelProperty">
                 <tk:TimeSpanUpDown Value="{Binding Value}" />
             </DataTemplate>
+
+			<DataTemplate x:Key="LargeTimeSpanViewModelProperty">
+				<TextBox Text="{Binding Value,Converter={StaticResource largeTimeSpanConverter}}" />
+			</DataTemplate>
 
 
 			<DataTemplate x:Key="ByteViewModelProperty">

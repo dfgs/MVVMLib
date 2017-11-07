@@ -42,6 +42,9 @@ namespace SqlDatabaseUpgraderLib
 				case "Int32":
 					result = "int";
 					break;
+				case "UInt16":
+					result = "int";
+					break;
 				case "Int64":
 					result = "bigint";
 					break;
