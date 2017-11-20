@@ -29,23 +29,13 @@
 
 			<DataTemplate x:Key="IntListViewModelProperty">
 				<ComboBox ItemsSource="{Binding Items}"  DisplayMemberPath="{Binding DisplayMemberPath}" SelectedValuePath="{Binding SelectedValuePath}" SelectedValue="{Binding Value}">
-					<!-- Prevent display bug -->
-					<ComboBox.ItemTemplate>
-						<DataTemplate>
-							<ContentPresenter Content="{Binding}"/>
-						</DataTemplate>
-					</ComboBox.ItemTemplate>
+					
 				</ComboBox>
 			</DataTemplate>
 
 			<DataTemplate x:Key="TextListViewModelProperty">
 				<ComboBox ItemsSource="{Binding Items}"  DisplayMemberPath="{Binding DisplayMemberPath}" SelectedValuePath="{Binding SelectedValuePath}" SelectedValue="{Binding Value}">
-					<!-- Prevent display bug -->
-					<ComboBox.ItemTemplate>
-						<DataTemplate>
-							<ContentPresenter Content="{Binding}"/>
-						</DataTemplate>
-					</ComboBox.ItemTemplate>
+					
 				</ComboBox>
 			</DataTemplate>
 			

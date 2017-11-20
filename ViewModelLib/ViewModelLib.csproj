@@ -100,10 +100,6 @@
     <Compile Include="ViewModelSchemaConverter.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ModelLib\ModelLib.csproj">
-      <Project>{360B1F0A-1582-4979-91F0-E323B0B65E2C}</Project>
-      <Name>ModelLib</Name>
-    </ProjectReference>
     <ProjectReference Include="..\ViewLib\ViewLib.csproj">
       <Project>{ec7caa89-ce12-41c9-aa61-238c5e8b55c6}</Project>
       <Name>ViewLib</Name>

@@ -47,16 +47,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DatabaseModelLib\DatabaseModelLib.csproj">
-      <Project>{5d765243-db53-4e4a-9101-881a4024b3b5}</Project>
-      <Name>DatabaseModelLib</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ModelLib\ModelLib.csproj">
-      <Project>{360b1f0a-1582-4979-91f0-e323b0b65e2c}</Project>
-      <Name>ModelLib</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>

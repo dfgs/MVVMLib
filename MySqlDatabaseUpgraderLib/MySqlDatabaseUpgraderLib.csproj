@@ -47,17 +47,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DatabaseModelLib\DatabaseModelLib.csproj">
-      <Project>{5d765243-db53-4e4a-9101-881a4024b3b5}</Project>
-      <Name>DatabaseModelLib</Name>
-    </ProjectReference>
     <ProjectReference Include="..\DatabaseUpgraderLib\DatabaseUpgraderLib.csproj">
       <Project>{dab4ccaa-92de-4d6c-912c-e561d2321252}</Project>
       <Name>DatabaseUpgraderLib</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\MySqlDatabaseModelLib\MySqlDatabaseModelLib.csproj">
-      <Project>{e03cea8a-01b6-4562-9350-bab66b676078}</Project>
-      <Name>MySqlDatabaseModelLib</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
