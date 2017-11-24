@@ -25,7 +25,7 @@ namespace ViewModelLib.Attributes
 	
 		public override IViewModelProperty CreateViewModelProperty(IEnumerable<IViewModel> ViewModels, PropertyDescriptor pd,bool AutoApply)
 		{
-			return new ByteViewModelProperty(ViewModels,pd, Header ?? pd.Name, IsMandatory, IsReadOnly,AutoApply,MinValue,MaxValue);
+			return new ByteViewModelProperty(ViewModels,pd, Header ?? pd.Name, Category, IsMandatory, IsReadOnly,AutoApply,MinValue,MaxValue);
 		}
 
 	}

@@ -21,7 +21,16 @@
             <Button Margin="4" Content="Cancel" Width="80" Command="{Binding CancelCommand}"/>
             <Button Margin="4" Content="Apply" Width="80" Command="{Binding ApplyCommand}"/>
         </StackPanel>
-        <local:EditControl/>
-    </DockPanel>
+		<ScrollViewer  HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" HorizontalContentAlignment="Stretch" >
+			<ItemsControl ItemsSource="{Binding GroupedProperties}">
+				<ItemsControl.ItemTemplate>
+					<DataTemplate>
+						<local:EditControl DataContext="{Binding Value}"/>
+					</DataTemplate>
+				</ItemsControl.ItemTemplate>
+			</ItemsControl>
+			
+		</ScrollViewer>
+	</DockPanel>
 </Window>
 

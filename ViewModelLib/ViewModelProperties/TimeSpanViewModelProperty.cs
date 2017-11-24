@@ -15,8 +15,8 @@ namespace ViewModelLib.ViewModelProperties
 			get { return (Value==DateTime.MinValue) || (Value==null);	}
 		}*/
 
-		public TimeSpanViewModelProperty(IEnumerable<IViewModel> ViewModels, PropertyDescriptor pd, string Header,bool IsMandatory, bool IsReadOnly, bool AutoApply)
-			:base(ViewModels,pd,Header,IsMandatory,IsReadOnly,AutoApply)
+		public TimeSpanViewModelProperty(IEnumerable<IViewModel> ViewModels, PropertyDescriptor pd, string Header, string Category, bool IsMandatory, bool IsReadOnly, bool AutoApply)
+			:base(ViewModels,pd,Header,Category,IsMandatory,IsReadOnly,AutoApply)
 		{
 		}
 

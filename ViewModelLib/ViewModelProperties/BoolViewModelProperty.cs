@@ -14,8 +14,8 @@ namespace ViewModelLib.ViewModelProperties
 		{
 			get { return false; }
 		}*/
-		public BoolViewModelProperty(IEnumerable<IViewModel> ViewModels, PropertyDescriptor pd, string Header,bool IsMandatory, bool IsReadOnly,bool AutoApply) 
-			:base(ViewModels, pd,Header,IsMandatory,IsReadOnly,AutoApply)
+		public BoolViewModelProperty(IEnumerable<IViewModel> ViewModels, PropertyDescriptor pd, string Header, string Category, bool IsMandatory, bool IsReadOnly,bool AutoApply) 
+			:base(ViewModels, pd,Header,Category,IsMandatory,IsReadOnly,AutoApply)
 		{
 		}
 

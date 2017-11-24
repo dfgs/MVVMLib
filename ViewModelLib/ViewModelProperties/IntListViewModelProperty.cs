@@ -14,8 +14,8 @@ namespace ViewModelLib.ViewModelProperties
 	public class IntListViewModelProperty: ListViewModelProperty<int?>
 	{
 
-		public IntListViewModelProperty(IEnumerable<IViewModel> ViewModels, PropertyDescriptor pd, string Header,bool IsMandatory,bool IsReadOnly, bool AutoApply, string SourcePath, string SelectedValuePath, string DisplayMemberPath) 
-			:base(ViewModels,pd,Header,IsMandatory,IsReadOnly,AutoApply,SourcePath,SelectedValuePath,DisplayMemberPath)
+		public IntListViewModelProperty(IEnumerable<IViewModel> ViewModels, PropertyDescriptor pd, string Header, string Category, bool IsMandatory,bool IsReadOnly, bool AutoApply, string SourcePath, string SelectedValuePath, string DisplayMemberPath) 
+			:base(ViewModels,pd,Header,Category,IsMandatory,IsReadOnly,AutoApply,SourcePath,SelectedValuePath,DisplayMemberPath)
 		{
 
 		}

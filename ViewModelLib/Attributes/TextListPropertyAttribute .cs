@@ -15,7 +15,7 @@ namespace ViewModelLib.Attributes
 
 		public override IViewModelProperty CreateViewModelProperty(IEnumerable<IViewModel> ViewModels, PropertyDescriptor pd, bool AutoApply)
 		{
-			return new TextListViewModelProperty(ViewModels, pd, Header ?? pd.Name, IsMandatory, IsReadOnly,AutoApply, SourcePath, SelectedValuePath, DisplayMemberPath);
+			return new TextListViewModelProperty(ViewModels, pd, Header ?? pd.Name, Category, IsMandatory, IsReadOnly,AutoApply, SourcePath, SelectedValuePath, DisplayMemberPath);
 		}
 
 	}

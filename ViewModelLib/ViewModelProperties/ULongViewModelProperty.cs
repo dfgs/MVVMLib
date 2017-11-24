@@ -9,8 +9,8 @@ namespace ViewModelLib.ViewModelProperties
 {
 	public class ULongViewModelProperty : NumericViewModelProperty<ulong?>
 	{
-		public ULongViewModelProperty(IEnumerable<IViewModel> ViewModels, PropertyDescriptor pd, string Header, bool IsMandatory, bool IsReadOnly, bool AutoApply,ulong? MinValue,ulong? MaxValue) 
-			: base(ViewModels,pd, Header, IsMandatory, IsReadOnly,AutoApply,MinValue,MaxValue)
+		public ULongViewModelProperty(IEnumerable<IViewModel> ViewModels, PropertyDescriptor pd, string Header, string Category, bool IsMandatory, bool IsReadOnly, bool AutoApply,ulong? MinValue,ulong? MaxValue) 
+			: base(ViewModels,pd, Header,Category, IsMandatory, IsReadOnly,AutoApply,MinValue,MaxValue)
 		{
 		}
 

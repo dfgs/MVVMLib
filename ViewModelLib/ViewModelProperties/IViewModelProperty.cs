@@ -18,6 +18,7 @@ namespace ViewModelLib.ViewModelProperties
 		object Value
 		{
 			get;
+			set;
 		}
 
 		string Name

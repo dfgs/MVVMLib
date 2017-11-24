@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Data;
 using ViewLib;
 using ViewModelLib.Attributes;
 using ViewModelLib.ViewModelProperties;
@@ -49,6 +50,12 @@ namespace ViewModelLib
 			get { return properties.Values; }
 		}
 
+		private Dictionary<string, List<IViewModelProperty>> groupedProperties;
+		public Dictionary<string, List<IViewModelProperty>> GroupedProperties
+		{
+			get { return groupedProperties; }
+		}
+
 		private IEnumerable<IViewModel> viewModels;
         public IEnumerable<IViewModel> ViewModels
         {
@@ -69,6 +76,8 @@ namespace ViewModelLib
 			PropertyDescriptorCollection pds;
 			PropertyAttribute propertyAttribute;
 			IViewModelProperty property;
+			string category;
+			List<IViewModelProperty> categorizedProperties;
 
             ApplyCommand = new ViewModelCommand(OnApplyCommandCanExecute, OnApplyCommandExecute);
             OKCommand = new ViewModelCommand(OnOKCommandCanExecute, OnOKCommandExecute);
@@ -77,6 +86,7 @@ namespace ViewModelLib
 
             this.viewModels = ViewModels;
 			properties = new Dictionary<string, IViewModelProperty>();
+			groupedProperties = new Dictionary<string, List<IViewModelProperty>>();
 
 			pds = TypeDescriptor.GetProperties(ViewModelType);
 			foreach (PropertyDescriptor pd in pds)
@@ -85,7 +95,16 @@ namespace ViewModelLib
 				if (propertyAttribute == null) continue;
 				property = propertyAttribute.CreateViewModelProperty(ViewModels, pd,AutoApply);
 				properties.Add(pd.Name, property);
+
+				category = propertyAttribute.Category ?? "";
+				if (!groupedProperties.TryGetValue(category,out categorizedProperties))
+				{
+					categorizedProperties = new List<IViewModelProperty>();
+					groupedProperties.Add(category, categorizedProperties);
+				}
+				categorizedProperties.Add(property);
 			}
+
 
 		}
 

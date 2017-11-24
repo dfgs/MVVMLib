@@ -1,0 +1,115 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:ViewLib"
+        	xmlns:tk="http://schemas.xceed.com/wpf/xaml/toolkit">
+
+	<local:PropertyDataTemplateSelector x:Key="propertyDataTemplateSelector"/>
+	<local:BoolToVisibilityConverter x:Key="boolToVisibilityConverter"/>
+	<local:ReadOnlyToEnabledConverter x:Key="readOnlyToEnabledConverter"/>
+	<local:LargeTimeSpanConverter x:Key="largeTimeSpanConverter"/>
+
+	<DataTemplate x:Key="TextViewModelProperty">
+		<TextBox Text="{Binding Value,UpdateSourceTrigger=PropertyChanged}" />
+	</DataTemplate>
+
+	<DataTemplate x:Key="LargeTextViewModelProperty">
+		<TextBox Text="{Binding Value,UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" TextWrapping="Wrap" Height="60" />
+	</DataTemplate>
+
+	<DataTemplate x:Key="ColorViewModelProperty">
+		<tk:ColorPicker SelectedColor="{Binding Value}" ShowRecentColors="True" DisplayColorAndName="True" />
+	</DataTemplate>
+
+	<DataTemplate x:Key="IntListViewModelProperty">
+		<ComboBox ItemsSource="{Binding Items}"  DisplayMemberPath="{Binding DisplayMemberPath}" SelectedValuePath="{Binding SelectedValuePath}" SelectedValue="{Binding Value}">
+		</ComboBox>
+	</DataTemplate>
+
+	<DataTemplate x:Key="TextListViewModelProperty">
+		<ComboBox ItemsSource="{Binding Items}"  DisplayMemberPath="{Binding DisplayMemberPath}" SelectedValuePath="{Binding SelectedValuePath}" SelectedValue="{Binding Value}">
+
+		</ComboBox>
+	</DataTemplate>
+
+	<DataTemplate x:Key="BoolViewModelProperty">
+		<CheckBox IsChecked="{Binding Value,Mode=TwoWay}" IsThreeState="False" />
+	</DataTemplate>
+
+	<DataTemplate x:Key="DateTimeViewModelProperty">
+		<DatePicker SelectedDate="{Binding Value}" />
+	</DataTemplate>
+
+	<DataTemplate x:Key="TimeViewModelProperty">
+		<tk:TimePicker  Value="{Binding Value}" />
+	</DataTemplate>
+
+	<DataTemplate x:Key="TimeSpanViewModelProperty">
+		<tk:TimeSpanUpDown Value="{Binding Value}" />
+	</DataTemplate>
+
+	<DataTemplate x:Key="LargeTimeSpanViewModelProperty">
+		<TextBox Text="{Binding Value,Converter={StaticResource largeTimeSpanConverter}}" />
+	</DataTemplate>
+
+
+	<DataTemplate x:Key="ByteViewModelProperty">
+		<Grid>
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="1*"/>
+				<ColumnDefinition Width="5"/>
+				<ColumnDefinition Width="15"/>
+				<ColumnDefinition Width="15"/>
+			</Grid.ColumnDefinitions>
+
+			<TextBox Grid.Column="0" Grid.RowSpan="2" Text="{Binding Value,UpdateSourceTrigger=PropertyChanged,StringFormat='N0'}" />
+			<Button Grid.Column="2"  Content="+"  Command="{Binding IncCommand}"/>
+			<Button Grid.Column="3"  Content="-" Command="{Binding DecCommand}"/>
+		</Grid>
+	</DataTemplate>
+
+	<DataTemplate x:Key="IntViewModelProperty">
+		<Grid>
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="1*"/>
+				<ColumnDefinition Width="5"/>
+				<ColumnDefinition Width="15"/>
+				<ColumnDefinition Width="15"/>
+			</Grid.ColumnDefinitions>
+
+			<TextBox Grid.Column="0" Grid.RowSpan="2" Text="{Binding Value,UpdateSourceTrigger=PropertyChanged,StringFormat='N0'}" />
+			<Button Grid.Column="2"  Content="+"  Command="{Binding IncCommand}"/>
+			<Button Grid.Column="3"  Content="-" Command="{Binding DecCommand}"/>
+		</Grid>
+	</DataTemplate>
+
+	<DataTemplate x:Key="LongViewModelProperty">
+		<Grid>
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="1*"/>
+				<ColumnDefinition Width="5"/>
+				<ColumnDefinition Width="15"/>
+				<ColumnDefinition Width="15"/>
+			</Grid.ColumnDefinitions>
+
+			<TextBox Grid.Column="0" Grid.RowSpan="2" Text="{Binding Value,UpdateSourceTrigger=PropertyChanged,StringFormat='N0'}" />
+			<Button Grid.Column="2"  Content="+"  Command="{Binding IncCommand}"/>
+			<Button Grid.Column="3"  Content="-" Command="{Binding DecCommand}"/>
+		</Grid>
+	</DataTemplate>
+
+	<DataTemplate x:Key="ULongViewModelProperty">
+		<Grid>
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="1*"/>
+				<ColumnDefinition Width="5"/>
+				<ColumnDefinition Width="15"/>
+				<ColumnDefinition Width="15"/>
+			</Grid.ColumnDefinitions>
+
+			<TextBox Grid.Column="0" Grid.RowSpan="2" Text="{Binding Value,UpdateSourceTrigger=PropertyChanged,StringFormat='N0'}" />
+			<Button Grid.Column="2"  Content="+"  Command="{Binding IncCommand}"/>
+			<Button Grid.Column="3"  Content="-" Command="{Binding DecCommand}"/>
+		</Grid>
+	</DataTemplate>
+
+</ResourceDictionary>

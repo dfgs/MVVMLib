@@ -28,6 +28,11 @@ namespace ViewModelLib.Attributes
 			set;
 		}
 		
+		public string Category
+		{
+			get;
+			set;
+		}
 		public PropertyAttribute()
 		{
 			

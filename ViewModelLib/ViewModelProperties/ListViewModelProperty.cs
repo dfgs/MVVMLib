@@ -40,8 +40,8 @@ namespace ViewModelLib.ViewModelProperties
 
 		
 
-		public ListViewModelProperty(IEnumerable<IViewModel> ViewModels, PropertyDescriptor pd, string Header,bool IsMandatory,bool IsReadOnly, bool AutoApply, string SourcePath, string SelectedValuePath, string DisplayMemberPath) 
-			:base(ViewModels,pd,Header,IsMandatory,IsReadOnly,AutoApply)
+		public ListViewModelProperty(IEnumerable<IViewModel> ViewModels, PropertyDescriptor pd, string Header, string Category, bool IsMandatory,bool IsReadOnly, bool AutoApply, string SourcePath, string SelectedValuePath, string DisplayMemberPath) 
+			:base(ViewModels,pd,Header,Category,IsMandatory,IsReadOnly,AutoApply)
 		{
 			this.sourcePath = SourcePath; this.displayMemberPath = DisplayMemberPath; this.selectedValuePath = SelectedValuePath;
 			items = GetDeepPropertyValue(ViewModels.FirstOrDefault(), sourcePath) as IEnumerable;

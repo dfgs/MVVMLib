@@ -12,8 +12,8 @@ namespace ViewModelLib.ViewModelProperties
 		
 
 
-		public ByteViewModelProperty(IEnumerable<IViewModel> ViewModels, PropertyDescriptor pd, string Header, bool IsMandatory, bool IsReadOnly, bool AutoApply,byte? MinValue,byte? MaxValue)
-			: base(ViewModels, pd, Header, IsMandatory, IsReadOnly,AutoApply,MinValue,MaxValue)
+		public ByteViewModelProperty(IEnumerable<IViewModel> ViewModels, PropertyDescriptor pd, string Header, string Category, bool IsMandatory, bool IsReadOnly, bool AutoApply,byte? MinValue,byte? MaxValue)
+			: base(ViewModels, pd, Header,Category, IsMandatory, IsReadOnly,AutoApply,MinValue,MaxValue)
 		{
 		}
 

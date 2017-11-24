@@ -40,8 +40,8 @@ namespace ViewModelLib.ViewModelProperties
 			get { return false; }
 		}*/
 
-		public NumericViewModelProperty(IEnumerable<IViewModel> ViewModels, PropertyDescriptor pd, string Header,bool IsMandatory, bool IsReadOnly, bool AutoApply,ValType MinValue,ValType MaxValue)
-			:base(ViewModels,pd,Header,IsMandatory,IsReadOnly,AutoApply)
+		public NumericViewModelProperty(IEnumerable<IViewModel> ViewModels, PropertyDescriptor pd, string Header, string Category, bool IsMandatory, bool IsReadOnly, bool AutoApply,ValType MinValue,ValType MaxValue)
+			:base(ViewModels,pd,Header,Category,IsMandatory,IsReadOnly,AutoApply)
 		{
 			this.minValue = MinValue;this.maxValue = MaxValue;
 			IncCommand = new ViewModelCommand(IncCommandCanExecute, IncCommandExecute);

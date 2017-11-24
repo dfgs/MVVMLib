@@ -49,6 +49,12 @@ namespace ViewModelLib.ViewModelProperties
 			get { return header; }
 		}
 
+		private string category;
+		public string Category
+		{
+			get { return category; }
+		}
+
 		private bool isMandatory;
 		public bool IsMandatory
 		{
@@ -99,6 +105,7 @@ namespace ViewModelLib.ViewModelProperties
 		object IViewModelProperty.Value
 		{
 			get { return Value; }
+			set { Value = (ValType)value; }
 		}
 
 		private TypeConverter converter;
@@ -113,7 +120,7 @@ namespace ViewModelLib.ViewModelProperties
 			set { SetValue(ValueProperty, value); }
 		}
 
-		public ViewModelProperty(IEnumerable<IViewModel> ViewModels, PropertyDescriptor pd, string Header,bool IsMandatory,bool IsReadOnly,bool AutoApply)
+		public ViewModelProperty(IEnumerable<IViewModel> ViewModels, PropertyDescriptor pd, string Header,string Category, bool IsMandatory,bool IsReadOnly,bool AutoApply)
 		{
 			ClearCommand = new ViewModelCommand(OnClearCommandCanExecute, OnClearCommandExecute);
 			EditCommand = new ViewModelCommand(OnEditCommandCanExecute, OnEditCommandExecute);
@@ -124,6 +131,7 @@ namespace ViewModelLib.ViewModelProperties
 			this.isMandatory = IsMandatory;
 			this.isReadOnly = IsReadOnly;
 			this.header = Header;
+			this.category = Category;
 			this.autoApply = AutoApply;
 			converter = TypeDescriptor.GetConverter(pd.PropertyType);
 
@@ -229,6 +237,8 @@ namespace ViewModelLib.ViewModelProperties
 			}
 			
 		}
+
+		
 
 		public bool Validate()
 		{

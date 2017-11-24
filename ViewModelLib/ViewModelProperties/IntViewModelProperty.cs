@@ -9,8 +9,8 @@ namespace ViewModelLib.ViewModelProperties
 {
 	public class IntViewModelProperty : NumericViewModelProperty<int?>
 	{
-		public IntViewModelProperty(IEnumerable<IViewModel> ViewModels, PropertyDescriptor pd, string Header, bool IsMandatory, bool IsReadOnly, bool AutoApply,int MinValue,int MaxValue)
-			: base(ViewModels, pd, Header, IsMandatory, IsReadOnly,AutoApply,MinValue,MaxValue)
+		public IntViewModelProperty(IEnumerable<IViewModel> ViewModels, PropertyDescriptor pd, string Header, string Category, bool IsMandatory, bool IsReadOnly, bool AutoApply,int MinValue,int MaxValue)
+			: base(ViewModels, pd, Header, Category,IsMandatory, IsReadOnly,AutoApply,MinValue,MaxValue)
 		{
 		}
 
