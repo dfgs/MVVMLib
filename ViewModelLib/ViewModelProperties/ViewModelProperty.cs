@@ -31,7 +31,7 @@ namespace ViewModelLib.ViewModelProperties
 		public bool IsLocked
 		{
 			get { return (bool)GetValue(IsLockedProperty); }
-			private set { SetValue(IsLockedProperty, value); }
+			set { SetValue(IsLockedProperty, value); }
 		}
 
 

@@ -14,6 +14,11 @@ namespace ViewModelLib.ViewModelProperties
 			get;
 		}
 
+		bool IsLocked
+		{
+			get;
+			set;
+		}
 
 		object Value
 		{

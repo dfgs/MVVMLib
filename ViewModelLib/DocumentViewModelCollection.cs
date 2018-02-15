@@ -173,5 +173,11 @@ namespace ViewModelLib
 			await RemoveAsync(SelectedItem);
 		}
 
+		public override bool Equals(ModelType x, ModelType y)
+		{
+			return ReferenceEquals(x , y);
+		}
+
+
 	}
 }

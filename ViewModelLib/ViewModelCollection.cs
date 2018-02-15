@@ -10,7 +10,7 @@ using ViewLib;
 
 namespace ViewModelLib
 {
-	public abstract class ViewModelCollection<CollectionModelType,ItemViewModelType,ItemModelType> : ViewModel<CollectionModelType>, IViewModelCollection<ItemViewModelType>
+	public abstract class ViewModelCollection<CollectionModelType,ItemViewModelType,ItemModelType> : ViewModel<CollectionModelType>, IViewModelCollection<ItemViewModelType>,IEqualityComparer<ItemModelType>
 		where CollectionModelType:IEnumerable<ItemModelType>
 		where ItemViewModelType : ViewModel<ItemModelType>
 
@@ -25,6 +25,10 @@ namespace ViewModelLib
 			}
 		}
 
+		public virtual bool UseDiff
+		{
+			get { return true; }
+		}
 		public int Count
 		{
 			get
@@ -80,7 +84,7 @@ namespace ViewModelLib
 			}
 		}
 
-		private ItemViewModelType savedSelectedItem;
+		//private ItemViewModelType savedSelectedItem;
 
 
 		public event NotifyCollectionChangedEventHandler CollectionChanged;
@@ -98,33 +102,86 @@ namespace ViewModelLib
 		
 
 		
-		protected override async Task<bool> OnLoadingAsync()
+		/*protected override async Task<bool> OnLoadingAsync()
 		{
 			savedSelectedItem = SelectedItem;
 			items.Clear();
 			return await base.OnLoadingAsync();
-		}
+		}*/
+
 		protected override async Task OnLoadedAsync()
 		{
 			ItemViewModelType item;
+			IEnumerable<NetDiff.DiffResult<ItemModelType>> diffs;
+			int index;
 
-			if (Model != null)
+			if (Model == null)
 			{
+				items.Clear();
+				CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+				OnPropertyChanged("Count");
+				SelectedItem = null;
+				return;
+			}
+
+
+			if (UseDiff)
+			{
+				index = 0;
+				/*if (GetType().Name.Contains("EmployeeViewViewModel"))
+				{
+					int t = 0;
+				}//*/
+				var option = new NetDiff.DiffOption<ItemModelType>();
+				option.EqualityComparer = this;
+
+				diffs = NetDiff.DiffUtil.Diff(items.Select(i => i.Model), Model,option);
+
+				foreach (NetDiff.DiffResult<ItemModelType> diff in diffs)
+				{
+					switch(diff.Status)
+					{
+						case NetDiff.DiffStatus.Equal:
+							item = items[index];
+							await item.LoadAsync(diff.Obj1);
+							index++;
+							break;
+						case NetDiff.DiffStatus.Deleted:
+							item = items[index];
+							items.RemoveAt(index);
+							CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item, index));
+							
+							break;
+						case NetDiff.DiffStatus.Inserted:
+							item = await OnCreateViewModelItem(diff.Obj2.GetType());
+							await item.LoadAsync(diff.Obj2);
+							items.Insert(index, item);
+							CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add,item,index));
+							index++;
+							break;
+						default:
+							throw (new NotImplementedException());
+					}
+				}
+				OnPropertyChanged("Count");
+			}
+			else
+			{
+				items.Clear();
 				foreach (ItemModelType model in Model)
 				{
 					item = await OnCreateViewModelItem(model.GetType());
 					await item.LoadAsync(model);
 					items.Add(item);
 				}
+				CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+				OnPropertyChanged("Count");
 			}
 
-			if (savedSelectedItem == null) SelectedItem = OnGetDefaultSelectedItem() ;
-			else
-			{
-				SelectedItem = this.FirstOrDefault(i => i.IsModelEqualTo(savedSelectedItem.Model ));
-			}
-			CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
-			OnPropertyChanged("Count");
+			
+			SelectedItem = items.FirstOrDefault(i => i.IsSelected);
+			if (SelectedItem == null) SelectedItem = OnGetDefaultSelectedItem();
+
 			await base.OnLoadedAsync();
 		}
 
@@ -267,7 +324,11 @@ namespace ViewModelLib
 					return false;
 				}
 			}
+
 			
+
+
+
 			result = true;
 			foreach (ItemViewModelType viewModel in Schema.ViewModels)
 			{
@@ -415,6 +476,15 @@ namespace ViewModelLib
 		{
 			return GetEnumerator();
 		}
+
+		public abstract bool Equals(ItemModelType x, ItemModelType y);
+
+		public int GetHashCode(ItemModelType obj)
+		{
+			return obj.GetHashCode();
+		}
+
+
 
 	}
 }
