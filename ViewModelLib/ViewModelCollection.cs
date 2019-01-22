@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NetDiff;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -112,7 +113,7 @@ namespace ViewModelLib
 		protected override async Task OnLoadedAsync()
 		{
 			ItemViewModelType item;
-			IEnumerable<NetDiff.DiffResult<ItemModelType>> diffs;
+			IEnumerable<DiffResult<ItemModelType>> diffs;
 			int index;
 
 			if (Model == null)
